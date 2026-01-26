@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Lumen ERP{% endblock %}
+
+{% block content %}
+<div class="neumorph-card">
+    <h2 style="margin-bottom: 25px;">User Management</h2>
+
+    <div class="neumorph-card" style="margin-bottom: 30px;">
+        <h3>Add New User</h3>
+        <form method="POST">
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; margin-bottom: 8px;">Username</label>
+                    <input type="text" name="username" class="neumorph-inset" required>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px;">Password</label>
+                    <input type="password" name="password" class="neumorph-inset" required>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px;">Role</label>
+                    <select name="role" id="role_select" class="neumorph-inset" required onchange="toggleFields()">
+                        <option value="Faculty">Faculty</option>
+                        <option value="Student">Student</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Faculty Fields -->
+            <div id="faculty_fields" style="display: block;">
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px;">Department</label>
+                        <input type="text" name="department" class="neumorph-inset">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px;">Designation</label>
+                        <input type="text" name="designation" class="neumorph-inset">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Fields -->
+            <div id="student_fields" style="display: none;">
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px;">Enrollment No</label>
+                        <input type="text" name="enrollment_no" class="neumorph-inset">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px;">Course</label>
+                        <input type="text" name="course" class="neumorph-inset">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px;">Department</label>
+                        <input type="text" name="department" class="neumorph-inset" placeholder="e.g. CSE">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px;">Class</label>
+                        <input type="text" name="class_name" class="neumorph-inset" placeholder="e.g. A">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px;">Semester</label>
+                        <input type="number" name="semester" class="neumorph-inset">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="neumorph-btn">Create User</button>
+        </form>
+    </div>
+
+    <h3 style="margin-left: 20px; margin-bottom: 15px;">Faculty List</h3>
+    <div class="table-container" style="margin-bottom: 40px;">
+        <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--shadow-dark);">
+                    <th style="padding: 15px; text-align: left;">Username</th>
+                    <th style="padding: 15px; text-align: left;">Department</th>
+                    <th style="padding: 15px; text-align: left;">Designation</th>
+                    <th style="padding: 15px; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in faculty %}
+                <tr style="border-bottom: 1px solid var(--shadow-dark);">
+                    <td style="padding: 15px;">{{ user.username }}</td>
+                    <td style="padding: 15px;">{{ user.faculty_profile.department }}</td>
+                    <td style="padding: 15px;">{{ user.faculty_profile.designation }}</td>
+                    <td style="padding: 15px; text-align: center;">
+                        <a href="{{ url_for('edit_user', id=user.id) }}" class="neumorph-btn"
+                            style="padding: 5px 10px; font-size: 0.8rem; color: var(--teal-cyan);">Edit</a>
+                        <a href="{{ url_for('delete_user', id=user.id) }}" class="neumorph-btn"
+                            style="padding: 5px 10px; font-size: 0.8rem; color: var(--highlight-red);"
+                            onclick="return confirm('Are you sure?')">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <h3 style="margin-left: 20px; margin-bottom: 15px;">Student List</h3>
+    <div class="table-container">
+        <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--shadow-dark);">
+                    <th style="padding: 15px; text-align: left;">Username</th>
+                    <th style="padding: 15px; text-align: left;">Dept & Class</th>
+                    <th style="padding: 15px; text-align: left;">Enrollment</th>
+                    <th style="padding: 15px; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in students %}
+                <tr style="border-bottom: 1px solid var(--shadow-dark);">
+                    <td style="padding: 15px;">{{ user.username }}</td>
+                    <td style="padding: 15px;">{{ user.student_profile.department }} - {{
+                        user.student_profile.class_name }}</td>
+                    <td style="padding: 15px;">{{ user.student_profile.enrollment_no }}</td>
+                    <td style="padding: 15px; text-align: center;">
+                        <a href="{{ url_for('edit_user', id=user.id) }}" class="neumorph-btn"
+                            style="padding: 5px 10px; font-size: 0.8rem; color: var(--teal-cyan);">Edit</a>
+                        <a href="{{ url_for('delete_user', id=user.id) }}" class="neumorph-btn"
+                            style="padding: 5px 10px; font-size: 0.8rem; color: var(--highlight-red);"
+                            onclick="return confirm('Are you sure?')">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function toggleFields() {
+        const role = document.getElementById('role_select').value;
+        document.getElementById('faculty_fields').style.display = (role === 'Faculty') ? 'block' : 'none';
+        document.getElementById('student_fields').style.display = (role === 'Student') ? 'block' : 'none';
+    }
+</script>
+{% endblock %}

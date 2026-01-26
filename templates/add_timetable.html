@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Add Timetable Slot - Lumen ERP{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 60vh;">
+    <div class="neumorph-card" style="width: 100%; max-width: 500px; padding: 40px;">
+        <h2 style="text-align: center; margin-bottom: 30px;">Add New Slot</h2>
+        <form method="POST">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px;">Day</label>
+                <select name="day" class="neumorph-inset" required>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 12px; font-weight: 600;">Start Time</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select name="start_hour" class="neumorph-inset" style="flex: 1;" required>
+                        {% for i in range(1, 13) %}<option value="{{ '%02d' % i }}">{{ '%02d' % i }}</option>{% endfor
+                        %}
+                    </select>
+                    <span>:</span>
+                    <select name="start_minute" class="neumorph-inset" style="flex: 1;" required>
+                        {% for i in range(0, 60, 5) %}<option value="{{ '%02d' % i }}">{{ '%02d' % i }}</option>{%
+                        endfor %}
+                    </select>
+                    <select name="start_period" class="neumorph-inset" style="flex: 1;" required>
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 12px; font-weight: 600;">End Time</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select name="end_hour" class="neumorph-inset" style="flex: 1;" required>
+                        {% for i in range(1, 13) %}<option value="{{ '%02d' % i }}">{{ '%02d' % i }}</option>{% endfor
+                        %}
+                    </select>
+                    <span>:</span>
+                    <select name="end_minute" class="neumorph-inset" style="flex: 1;" required>
+                        {% for i in range(0, 60, 5) %}<option value="{{ '%02d' % i }}">{{ '%02d' % i }}</option>{%
+                        endfor %}
+                    </select>
+                    <select name="end_period" class="neumorph-inset" style="flex: 1;" required>
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Subject</label>
+                <input type="text" name="subject" list="subject_list" class="neumorph-inset" required
+                    placeholder="Select or type subject...">
+                <datalist id="subject_list">
+                    {% for s in subjects %}
+                    <option value="{{ s }}">
+                        {% endfor %}
+                </datalist>
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Class</label>
+                <input type="text" name="class_name" list="class_list" class="neumorph-inset" required
+                    placeholder="Select or type class...">
+                <datalist id="class_list">
+                    {% for c in classes %}
+                    <option value="{{ c }}">
+                        {% endfor %}
+                </datalist>
+            </div>
+            <div style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 8px;">Faculty</label>
+                <select name="faculty_id" class="neumorph-inset" required>
+                    {% for faculty in faculties %}
+                    <option value="{{ faculty.id }}">{{ faculty.user.username }} ({{ faculty.department }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="neumorph-btn" style="width: 100%;">Add Slot</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

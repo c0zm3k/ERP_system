@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Edit User - Lumen ERP{% endblock %}
+
+{% block content %}
+<div class="neumorph-card" style="max-width: 600px; margin: 50px auto;">
+    <h2 style="margin-bottom: 25px;">Edit User: {{ user.username }}</h2>
+
+    <form method="POST">
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Username</label>
+            <input type="text" name="username" value="{{ user.username }}" class="neumorph-inset" required>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">New Password (leave blank to keep
+                current)</label>
+            <input type="password" name="password" class="neumorph-inset">
+        </div>
+
+        {% if user.role == 'Faculty' %}
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Department</label>
+            <input type="text" name="department" value="{{ user.faculty_profile.department }}" class="neumorph-inset">
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Designation</label>
+            <input type="text" name="designation" value="{{ user.faculty_profile.designation }}" class="neumorph-inset">
+        </div>
+        {% elif user.role == 'Student' %}
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Enrollment No</label>
+            <input type="text" name="enrollment_no" value="{{ user.student_profile.enrollment_no }}"
+                class="neumorph-inset">
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Course</label>
+            <input type="text" name="course" value="{{ user.student_profile.course }}" class="neumorph-inset">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Department</label>
+                <input type="text" name="department" value="{{ user.student_profile.department }}"
+                    class="neumorph-inset">
+            </div>
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Class</label>
+                <input type="text" name="class_name" value="{{ user.student_profile.class_name }}"
+                    class="neumorph-inset">
+            </div>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Semester</label>
+            <input type="number" name="semester" value="{{ user.student_profile.semester }}" class="neumorph-inset">
+        </div>
+        {% endif %}
+
+        <div style="display: flex; gap: 15px; margin-top: 30px;">
+            <button type="submit" class="neumorph-btn" style="flex: 1; color: var(--teal-cyan);">Save Changes</button>
+            <a href="{{ url_for('manage_users') }}" class="neumorph-btn"
+                style="flex: 1; text-align: center; text-decoration: none;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

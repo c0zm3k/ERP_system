@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Class Allotment - Lumen ERP{% endblock %}
+
+{% block content %}
+<div class="neumorph-card">
+    <h2 style="margin-bottom: 25px;">Class Allotment</h2>
+
+    <div class="neumorph-card" style="margin-bottom: 30px;">
+        <h3>Allot New Class</h3>
+        <form method="POST">
+            <div
+                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Faculty</label>
+                    <select name="faculty_id" class="neumorph-inset" required>
+                        {% for f in faculties %}
+                        <option value="{{ f.id }}">{{ f.user.username }} ({{ f.department }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Department</label>
+                    <input type="text" name="department" list="dept_list" placeholder="Select or type..."
+                        class="neumorph-inset" required>
+                    <datalist id="dept_list">
+                        {% for d in departments %}
+                        <option value="{{ d }}">
+                            {% endfor %}
+                    </datalist>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Class</label>
+                    <input type="text" name="class_name" list="class_list" placeholder="Select or type..."
+                        class="neumorph-inset" required>
+                    <datalist id="class_list">
+                        {% for c in classes %}
+                        <option value="{{ c }}">
+                            {% endfor %}
+                    </datalist>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Subject</label>
+                    <input type="text" name="subject" list="subject_list" placeholder="Select or type..."
+                        class="neumorph-inset" required>
+                    <datalist id="subject_list">
+                        {% for s in subjects %}
+                        <option value="{{ s }}">
+                            {% endfor %}
+                    </datalist>
+                </div>
+            </div>
+            <button type="submit" class="neumorph-btn" style="color: var(--teal-cyan);">Assign Class</button>
+        </form>
+    </div>
+
+    <h3 style="margin-left: 20px; margin-bottom: 15px;">Existing Allotments</h3>
+    <div class="table-container">
+        <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--shadow-dark);">
+                    <th style="padding: 15px; text-align: left;">Faculty</th>
+                    <th style="padding: 15px; text-align: left;">Department</th>
+                    <th style="padding: 15px; text-align: left;">Class</th>
+                    <th style="padding: 15px; text-align: left;">Subject</th>
+                    <th style="padding: 15px; text-align: center;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for allotment in allotments %}
+                <tr style="border-bottom: 1px solid var(--shadow-dark);">
+                    <td style="padding: 15px;">{{ allotment.faculty.user.username }}</td>
+                    <td style="padding: 15px;">{{ allotment.department }}</td>
+                    <td style="padding: 15px;">{{ allotment.class_name }}</td>
+                    <td style="padding: 15px;">{{ allotment.subject }}</td>
+                    <td style="padding: 15px; text-align: center;">
+                        <a href="{{ url_for('delete_allotment', id=allotment.id) }}" class="neumorph-btn"
+                            style="padding: 5px 10px; font-size: 0.8rem; color: var(--highlight-red);"
+                            onclick="return confirm('Remove this allotment?')">Remove</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

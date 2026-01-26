@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Lumen ERP{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=4.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- 3D Background Decor -->
+    <div class="bg-decor">
+        <div class="decor-blob blob-1"></div>
+        <div class="decor-blob blob-2"></div>
+        <div class="decor-blob blob-3"></div>
+    </div>
+    <nav>
+        <div class="nav-capsule" style="background-color: #103F60;">
+            <a href="{{ url_for('dashboard') }}" class="logo" style="text-decoration: none;">Lumen ERP</a>
+
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <div class="nav-links" id="nav-links">
+                {% if current_user.is_authenticated %}
+                {% if current_user.role == 'Admin' %}
+                <a href="{{ url_for('dashboard') }}">Home</a>
+                <a href="{{ url_for('admin_panel') }}">Admin Settings</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}">Logout</a>
+                {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div id="flash-container">
+            {% for category, message in messages %}
+            <div class="neumorph-card category-{{ category }} flash-msg">
+                <div class="flash-close" onclick="this.parentElement.classList.add('fade-out')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </div>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        &copy; 2026 Lumen ERP - Modern Academic Management
+    </footer>
+
+    <script>
+        // Hamburger Menu Toggle
+        document.getElementById('hamburger').addEventListener('click', function () {
+            document.getElementById('nav-links').classList.toggle('active');
+        });
+
+        // Auto-hide flash messages after 1.5 seconds
+        document.addEventListener('DOMContentLoaded', () => {
+            const messages = document.querySelectorAll('.flash-msg');
+            messages.forEach(msg => {
+                setTimeout(() => {
+                    if (msg) msg.classList.add('fade-out');
+                    // Completely remove from DOM after the 0.6s CSS transition
+                    setTimeout(() => {
+                        if (msg) msg.style.display = 'none';
+                    }, 650);
+                }, 1500);
+            });
+        });
+    </script>
+</body>
+
+</html>

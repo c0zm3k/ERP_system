@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Timetable - Lumen ERP{% endblock %}
+
+{% block content %}
+<div class="neumorph-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+        <h2>Weekly Timetable</h2>
+        {% if current_user.role == 'Admin' %}
+        <a href="{{ url_for('add_timetable') }}" class="neumorph-btn" style="text-decoration: none;">+ Add Slot</a>
+        {% endif %}
+    </div>
+
+    <div class="table-container">
+        <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--shadow-dark);">
+                    <th style="padding: 15px; text-align: left;">Day</th>
+                    <th style="padding: 15px; text-align: left;">Time</th>
+                    <th style="padding: 15px; text-align: left;">Class</th>
+                    <th style="padding: 15px; text-align: left;">Subject</th>
+                    <th style="padding: 15px; text-align: left;">Faculty</th>
+                    {% if current_user.role == 'Admin' %}
+                    <th style="padding: 15px; text-align: center;">Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for slot in slots %}
+                <tr style="border-bottom: 1px solid var(--shadow-dark);">
+                    <td style="padding: 15px;">{{ slot.day }}</td>
+                    <td style="padding: 15px;">{{ slot.time_slot }}</td>
+                    <td style="padding: 15px;">{{ slot.class_name }}</td>
+                    <td style="padding: 15px;">{{ slot.subject }}</td>
+                    <td style="padding: 15px;">{{ slot.faculty.user.username }}</td>
+                    {% if current_user.role == 'Admin' %}
+                    <td style="padding: 15px; text-align: center;">
+                        <a href="{{ url_for('edit_timetable', id=slot.id) }}" class="neumorph-btn"
+                            style="padding: 5px 10px; font-size: 0.8rem; color: var(--teal-cyan);">Edit</a>
+                        <a href="{{ url_for('delete_timetable', id=slot.id) }}" class="neumorph-btn"
+                            style="padding: 5px 10px; font-size: 0.8rem; color: var(--highlight-red);"
+                            onclick="return confirm('Delete this slot?')">Delete</a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="padding: 30px; text-align: center; opacity: 0.5;">No slots defined yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

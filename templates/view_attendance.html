@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}My Attendance - Lumen ERP{% endblock %}
+
+{% block content %}
+<div class="responsive-grid">
+    <div class="neumorph-card" style="margin: 0;">
+        <h2 style="margin-bottom: 25px;">Attendance Records</h2>
+        <div class="table-container">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--shadow-dark);">
+                        <th style="padding: 15px; text-align: left;">Date</th>
+                        <th style="padding: 15px; text-align: left;">Subject</th>
+                        <th style="padding: 15px; text-align: center;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for att in attendances %}
+                    <tr style="border-bottom: 1px solid var(--shadow-dark);">
+                        <td style="padding: 15px;">{{ att.date.strftime('%Y-%m-%d') }}</td>
+                        <td style="padding: 15px;">{{ att.subject }}</td>
+                        <td style="padding: 15px; text-align: center;">
+                            <span class="status-badge {{ 'present' if att.status == 'Present' else 'absent' }}">
+                                {{ att.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" style="padding: 30px; text-align: center; opacity: 0.5;">No records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="neumorph-card"
+        style="margin: 0; text-align: center; display: flex; flex-direction: column; align-items: center;">
+        <h2 style="margin-bottom: 25px;">Performance Overview</h2>
+        <div style="width: 100%; max-width: 300px; padding: 20px;" class="neumorph-inset">
+            <canvas id="attendanceChart"></canvas>
+        </div>
+        <div style="margin-top: 30px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+            <div style="text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: 800; color: #4DB6AC;">{{ present }}</div>
+                <div style="font-size: 0.8rem; opacity: 0.6; text-transform: uppercase;">Present</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 1.5rem; font-weight: 800; color: #E57373;">{{ absent }}</div>
+                <div style="font-size: 0.8rem; opacity: 0.6; text-transform: uppercase;">Absent</div>
+            </div>
+            <div style="text-align: center;">
+                {% set total = present + absent %}
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--header-blue);">
+                    {{ (present / total * 100)|round(1) if total > 0 else 0 }}%
+                </div>
+                <div style="font-size: 0.8rem; opacity: 0.6; text-transform: uppercase;">Total</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top: 40px; text-align: center;">
+    <a href="{{ url_for('dashboard') }}" class="neumorph-btn"
+        style="text-decoration: none; display: inline-block; padding: 12px 30px;">Back to Dashboard</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('attendanceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Present', 'Absent'],
+            datasets: [{
+                data: [{{ present| int }}, {{ absent| int }}],
+        backgroundColor: ['#4DB6AC', '#E57373'],
+        borderColor: 'transparent',
+        borderWidth: 0,
+        hoverOffset: 10
+    }]
+        },
+        options: {
+        cutout: '70%',
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        responsive: true,
+        maintainAspectRatio: true
+    }
+    });
+</script>
+{% endblock %}

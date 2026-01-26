@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Notes - Lumen ERP{% endblock %}
+
+{% block content %}
+<div class="neumorph-card">
+    <h2 style="margin-bottom: 25px;">Study Materials & Notes</h2>
+
+    {% if current_user.role == 'Faculty' %}
+    <div class="neumorph-card" style="margin-bottom: 40px; padding: 30px;">
+        <h3>Upload New Note</h3>
+        <form method="POST" enctype="multipart/form-data">
+            <div style="margin-bottom: 20px;">
+                <input type="file" name="file" class="neumorph-inset" required style="padding: 10px;">
+            </div>
+            <button type="submit" class="neumorph-btn">Upload Note</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="neumorph-card"
+        style="box-shadow: inset 4px 4px 10px var(--shadow-dark), inset -4px -4px 10px var(--shadow-light); padding: 0; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; min-width: 400px;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--shadow-dark);">
+                    <th style="padding: 15px; text-align: left;">Filename</th>
+                    <th style="padding: 15px; text-align: center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for filename in notes %}
+                <tr style="border-bottom: 1px solid var(--shadow-dark);">
+                    <td style="padding: 15px;">{{ filename }}</td>
+                    <td style="padding: 15px; text-align: center;">
+                        <a href="{{ url_for('download_file', filename=filename) }}" class="neumorph-btn"
+                            style="text-decoration: none;">Download</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="2" style="padding: 30px; text-align: center; opacity: 0.5;">No materials available.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Lumen ERP{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 70vh;">
+    <div class="neumorph-card" style="width: 100%; max-width: 400px; padding: 40px;">
+        <h2 style="text-align: center; margin-bottom: 30px;">Welcome Back</h2>
+        <form method="POST">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Username</label>
+                <input type="text" name="username" class="neumorph-inset" required placeholder="Enter your username">
+            </div>
+            <div style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Password</label>
+                <input type="password" name="password" class="neumorph-inset" required
+                    placeholder="Enter your password">
+            </div>
+            <button type="submit" class="neumorph-btn" style="width: 100%;">Log In</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
