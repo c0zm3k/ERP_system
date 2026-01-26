@@ -38,6 +38,24 @@ def create_app(config_class=Config):
     def load_user(user_id):
         return User.query.get(int(user_id))
 
+    with app.app_context():
+        # Ensure instance folder exists for SQLite
+        if not os.path.exists(app.instance_path):
+            os.makedirs(app.instance_path)
+            
+        db.create_all()
+        
+        # Seed default admin if missing
+        if not User.query.filter_by(role='Admin').first():
+            admin = User(username='admin', role='Admin')
+            admin.set_password('admin123')
+            db.session.add(admin)
+            db.session.commit()
+
+        # Ensure upload folder exists
+        if not os.path.exists(app.config['UPLOAD_FOLDER']):
+            os.makedirs(app.config['UPLOAD_FOLDER'])
+
     @app.route('/')
     def index():
         return redirect(url_for('login'))
