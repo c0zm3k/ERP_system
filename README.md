@@ -12,7 +12,7 @@ Lumen ERP streamlines college administration by providing a distinct, aesthetic 
 
 | Login Page | Dashboard |
 | --- | --- |
-|  |  |
+| ![Login Page](screenshots/login.png) | ![Dashboard](screenshots/dashboard.png) |
 
 ---
 
