@@ -8,10 +8,7 @@ import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
 
-db = SQLAlchemy()
-login_manager = LoginManager()
-login_manager.login_view = 'login'
-migrate = Migrate()
+from extensions import db, login_manager, migrate
 
 def role_required(role):
     def decorator(f):
@@ -100,8 +97,21 @@ def create_app(config_class=Config):
         allotments = faculty.allotments.all()
         
         selected_allotment_id = request.args.get('allotment_id', type=int)
+        date_str = request.args.get('date')
+        
+        if not date_str:
+            date_obj = datetime.utcnow().date()
+            date_str = date_obj.strftime('%Y-%m-%d')
+        else:
+            try:
+                date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError:
+                date_obj = datetime.utcnow().date()
+                date_str = date_obj.strftime('%Y-%m-%d')
+
         selected_allotment = None
         students = []
+        marked_status = {}
         
         if selected_allotment_id:
             selected_allotment = ClassAllotment.query.get(selected_allotment_id)
@@ -110,9 +120,19 @@ def create_app(config_class=Config):
                     department=selected_allotment.department,
                     class_name=selected_allotment.class_name
                 ).all()
+                
+                # Fetch existing attendance for this date and subject
+                existing_attendance = Attendance.query.filter_by(
+                    date=date_obj,
+                    subject=selected_allotment.subject
+                ).filter(Attendance.student_id.in_([s.id for s in students])).all()
+                
+                marked_status = {a.student_id: a.status for a in existing_attendance}
+                
+        # Calculate counts
+        present_count = list(marked_status.values()).count('Present')
+        absent_count = list(marked_status.values()).count('Absent')
 
-        today = datetime.utcnow().date().strftime('%Y-%m-%d')
-        
         if request.method == 'POST':
             allotment_id = request.form.get('allotment_id', type=int)
             allotment = ClassAllotment.query.get(allotment_id)
@@ -120,11 +140,10 @@ def create_app(config_class=Config):
                 flash('Invalid allotment.', 'danger')
                 return redirect(url_for('mark_attendance'))
 
-            date_str = request.form.get('date')
-            date_obj = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else datetime.utcnow().date()
-            subject = allotment.subject # Automatically use allotted subject
+            post_date_str = request.form.get('date')
+            post_date_obj = datetime.strptime(post_date_str, '%Y-%m-%d').date() if post_date_str else datetime.utcnow().date()
+            subject = allotment.subject
             
-            # Re-fetch students for this allotment to process POST
             students_to_mark = StudentDetails.query.filter_by(
                 department=allotment.department,
                 class_name=allotment.class_name
@@ -133,17 +152,19 @@ def create_app(config_class=Config):
             for student in students_to_mark:
                 status = request.form.get(f'status_{student.id}')
                 if status:
-                    existing = Attendance.query.filter_by(student_id=student.id, date=date_obj, subject=subject).first()
+                    existing = Attendance.query.filter_by(student_id=student.id, date=post_date_obj, subject=subject).first()
                     if existing:
                         existing.status = status
                     else:
-                        att = Attendance(student_id=student.id, date=date_obj, status=status, subject=subject)
+                        att = Attendance(student_id=student.id, date=post_date_obj, status=status, subject=subject)
                         db.session.add(att)
             db.session.commit()
-            flash(f'Attendance for {allotment.class_name} ({allotment.subject}) marked!', 'success')
+            flash(f'Attendance for {allotment.class_name} ({allotment.subject}) updated!', 'success')
             return redirect(url_for('dashboard'))
             
-        return render_template('attendance.html', students=students, today=today, allotments=allotments, selected_allotment=selected_allotment)
+        return render_template('attendance.html', students=students, today=date_str, 
+                               allotments=allotments, selected_allotment=selected_allotment,
+                               marked_status=marked_status, present_count=present_count, absent_count=absent_count)
 
     @app.route('/timetable')
     @login_required
@@ -156,8 +177,7 @@ def create_app(config_class=Config):
     @login_required
     @role_required('Admin')
     def add_timetable():
-        from models import Timetable, FacultyDetails, ClassAllotment
-        faculties = FacultyDetails.query.all()
+        from models import Timetable, ClassAllotment
         # Fetch unique subjects and classes already added
         unique_subs = [x[0] for x in db.session.query(ClassAllotment.subject).distinct().all()]
         unique_subs += [x[0] for x in db.session.query(Timetable.subject).distinct().all()]
@@ -169,33 +189,42 @@ def create_app(config_class=Config):
 
         if request.method == 'POST':
             day = request.form.get('day')
-            # ... (rest of time processing)
             start_hour = request.form.get('start_hour')
             start_minute = request.form.get('start_minute')
             start_period = request.form.get('start_period')
             end_hour = request.form.get('end_hour')
             end_minute = request.form.get('end_minute')
             end_period = request.form.get('end_period')
+            subject = request.form.get('subject')
+            
+            print(f"DEBUG POST: day={day}, subject={subject}, start_hour={start_hour}, start_minute={start_minute}, start_period={start_period}")
             
             time_slot = f"{start_hour}:{start_minute} {start_period} - {end_hour}:{end_minute} {end_period}"
-            subject = request.form.get('subject')
-            class_name = request.form.get('class_name')
-            faculty_id = request.form.get('faculty_id')
             
+            # Auto-assign faculty if an allotment exists (by subject only now)
+            allotment = ClassAllotment.query.filter_by(subject=subject).first()
+            faculty_id = allotment.faculty_id if allotment else None
+            class_name = allotment.class_name if allotment else 'General'
+            
+            print(f"DEBUG SAVING: time_slot='{time_slot}', faculty_id={faculty_id}, class_name={class_name}")
+            
+            if not day or not subject or not time_slot:
+                flash('Error: Missing required fields', 'danger')
+                return redirect(url_for('add_timetable'))
+
             new_slot = Timetable(day=day, time_slot=time_slot, subject=subject, class_name=class_name, faculty_id=faculty_id)
             db.session.add(new_slot)
             db.session.commit()
-            flash('Timetable slot added!', 'success')
+            flash('Timetable slort added (Faculty auto-assigned)!', 'success')
             return redirect(url_for('view_timetable'))
-        return render_template('add_timetable.html', faculties=faculties, subjects=unique_subs, classes=unique_classes)
+        return render_template('add_timetable.html', subjects=unique_subs, classes=unique_classes)
 
     @app.route('/timetable/edit/<int:id>', methods=['GET', 'POST'])
     @login_required
     @role_required('Admin')
     def edit_timetable(id):
-        from models import Timetable, FacultyDetails, ClassAllotment
+        from models import Timetable, ClassAllotment
         slot = Timetable.query.get_or_404(id)
-        faculties = FacultyDetails.query.all()
         
         # Unique data for dropdowns
         unique_subs = [x[0] for x in db.session.query(ClassAllotment.subject).distinct().all()]
@@ -217,11 +246,14 @@ def create_app(config_class=Config):
             
             slot.time_slot = f"{start_hour}:{start_minute} {start_period} - {end_hour}:{end_minute} {end_period}"
             slot.subject = request.form.get('subject')
-            slot.class_name = request.form.get('class_name')
-            slot.faculty_id = request.form.get('faculty_id')
+            
+            # Auto-assign faculty if an allotment exists (by subject only)
+            allotment = ClassAllotment.query.filter_by(subject=slot.subject).first()
+            slot.faculty_id = allotment.faculty_id if allotment else None
+            slot.class_name = allotment.class_name if allotment else 'General'
             
             db.session.commit()
-            flash('Timetable slot updated!', 'success')
+            flash('Timetable slort updated (Faculty auto-assigned)!', 'success')
             return redirect(url_for('view_timetable'))
             
         # Parse existing time_slot for pre-filling
@@ -239,7 +271,7 @@ def create_app(config_class=Config):
         except:
             times = {'sh': '09', 'sm': '00', 'sp': 'AM', 'eh': '10', 'em': '00', 'ep': 'AM'}
 
-        return render_template('edit_timetable.html', slot=slot, faculties=faculties, 
+        return render_template('edit_timetable.html', slot=slot, 
                                subjects=unique_subs, classes=unique_classes, times=times)
 
     @app.route('/timetable/delete/<int:id>')
@@ -331,25 +363,35 @@ def create_app(config_class=Config):
             if role == 'Student':
                 enrollment = request.form.get('enrollment_no')
                 course = request.form.get('course')
-                dept = request.form.get('department')
-                cls_name = request.form.get('class_name')
+                dept = request.form.get('student_department')
                 semester = request.form.get('semester')
+                # Removed class_name as per user request
                 student = StudentDetails(user_id=new_user.id, enrollment_no=enrollment, 
-                                        course=course, department=dept, class_name=cls_name, semester=semester)
+                                        course=course, department=dept, semester=semester)
                 db.session.add(student)
             elif role == 'Faculty':
-                dept = request.form.get('department')
+                dept = request.form.get('faculty_department')
                 desig = request.form.get('designation')
                 faculty = FacultyDetails(user_id=new_user.id, department=dept, designation=desig)
                 db.session.add(faculty)
             
             db.session.commit()
-            flash(f'User {username} created successfully!', 'success')
+            flash('User created successfully!', 'success')
             return redirect(url_for('manage_users'))
-            
+
         faculty_users = User.query.filter_by(role='Faculty').all()
         student_users = User.query.filter_by(role='Student').all()
-        return render_template('manage_users.html', faculty=faculty_users, students=student_users)
+
+        # Fetch unique departments and courses for dropdowns
+        f_depts = db.session.query(FacultyDetails.department).distinct().all()
+        s_depts = db.session.query(StudentDetails.department).distinct().all()
+        departments = sorted(list(set([d[0] for d in f_depts if d[0]] + [d[0] for d in s_depts if d[0]])))
+        
+        courses_query = db.session.query(StudentDetails.course).distinct().all()
+        courses = sorted([c[0] for c in courses_query if c[0]])
+
+        return render_template('manage_users.html', faculty=faculty_users, students=student_users, 
+                               departments=departments, courses=courses)
 
     @app.route('/admin/user/edit/<int:id>', methods=['GET', 'POST'])
     @login_required
@@ -366,7 +408,6 @@ def create_app(config_class=Config):
                 user.student_profile.enrollment_no = request.form.get('enrollment_no')
                 user.student_profile.course = request.form.get('course')
                 user.student_profile.department = request.form.get('department')
-                user.student_profile.class_name = request.form.get('class_name')
                 user.student_profile.semester = request.form.get('semester')
             elif user.role == 'Faculty':
                 user.faculty_profile.department = request.form.get('department')
@@ -375,21 +416,29 @@ def create_app(config_class=Config):
             db.session.commit()
             flash('User updated successfully!', 'success')
             return redirect(url_for('manage_users'))
-        return render_template('edit_user.html', user=user)
+            
+        # Fetch unique departments and courses for dropdowns
+        f_depts = db.session.query(FacultyDetails.department).distinct().all()
+        s_depts = db.session.query(StudentDetails.department).distinct().all()
+        departments = sorted(list(set([d[0] for d in f_depts if d[0]] + [d[0] for d in s_depts if d[0]])))
+        
+        courses_query = db.session.query(StudentDetails.course).distinct().all()
+        courses = sorted([c[0] for c in courses_query if c[0]])
+
+        return render_template('edit_user.html', user=user, departments=departments, courses=courses)
 
     @app.route('/admin/user/delete/<int:id>')
     @login_required
     @role_required('Admin')
     def delete_user(id):
-        from models import User, StudentDetails, FacultyDetails
+        from models import User
+        if current_user.id == id:
+            flash('You cannot delete yourself!', 'danger')
+            return redirect(url_for('manage_users'))
         user = User.query.get_or_404(id)
-        if user.role == 'Student':
-            db.session.delete(user.student_profile)
-        elif user.role == 'Faculty':
-            db.session.delete(user.faculty_profile)
         db.session.delete(user)
         db.session.commit()
-        flash('User deleted!', 'warning')
+        flash(f'User {user.username} and all associated data deleted!', 'warning')
         return redirect(url_for('manage_users'))
 
     @app.route('/admin/allot_class', methods=['GET', 'POST'])
@@ -442,8 +491,7 @@ def create_app(config_class=Config):
 
 import os
 
-app = create_app()
-
 if __name__ == '__main__':
+    app = create_app()
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)

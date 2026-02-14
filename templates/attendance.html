@@ -26,13 +26,28 @@
         <input type="hidden" name="allotment_id" value="{{ selected_allotment.id }}">
 
         <div style="display: flex; gap: 20px; margin-bottom: 30px; align-items: flex-end;">
-            <div style="flex: 1;">
+            <div style="flex: 2;">
                 <label style="display: block; margin-bottom: 8px; font-weight: 600;">Date</label>
-                <input type="date" name="date" class="neumorph-inset" required value="{{ today }}">
+                <input type="date" name="date" id="attendance_date" class="neumorph-inset" required value="{{ today }}"
+                    onchange="reloadWithDate()">
             </div>
-            <div style="flex: 1;">
+            <div style="flex: 2;">
                 <label style="display: block; margin-bottom: 8px; font-weight: 600;">Subject (Locked)</label>
                 <input type="text" class="neumorph-inset" value="{{ selected_allotment.subject }}" disabled>
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <div class="neumorph-inset" style="padding: 10px; border-radius: 15px;">
+                    <div style="font-size: 0.7rem; font-weight: 800; opacity: 0.6;">PRESENT</div>
+                    <div id="present_display" style="font-size: 1.2rem; font-weight: 900; color: #27ae60;">{{
+                        present_count }}</div>
+                </div>
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <div class="neumorph-inset" style="padding: 10px; border-radius: 15px;">
+                    <div style="font-size: 0.7rem; font-weight: 800; opacity: 0.6;">ABSENT</div>
+                    <div id="absent_display" style="font-size: 1.2rem; font-weight: 900; color: #c0392b;">{{
+                        absent_count }}</div>
+                </div>
             </div>
         </div>
 
@@ -55,12 +70,14 @@
                         <td style="padding: 15px;">{{ student.user.username }}</td>
                         <td style="padding: 15px; text-align: center;">
                             <label style="margin-right: 15px; cursor: pointer;">
-                                <input type="radio" name="status_{{ student.id }}" value="Present" required> <span
-                                    style="color: #27ae60; font-weight: 600;">P</span>
+                                <input type="radio" name="status_{{ student.id }}" value="Present" required {% if
+                                    marked_status.get(student.id)=='Present' %}checked{% endif %}
+                                    onchange="updateCounts()"> <span style="color: #27ae60; font-weight: 600;">P</span>
                             </label>
                             <label style="cursor: pointer;">
-                                <input type="radio" name="status_{{ student.id }}" value="Absent"> <span
-                                    style="color: #c0392b; font-weight: 600;">A</span>
+                                <input type="radio" name="status_{{ student.id }}" value="Absent" {% if
+                                    marked_status.get(student.id)=='Absent' %}checked{% endif %}
+                                    onchange="updateCounts()"> <span style="color: #c0392b; font-weight: 600;">A</span>
                             </label>
                         </td>
                     </tr>
@@ -88,4 +105,24 @@
     </div>
     {% endif %}
 </div>
+
+{% if selected_allotment %}
+<script>
+    function updateCounts() {
+        const presents = document.querySelectorAll('input[type="radio"][value="Present"]:checked').length;
+        const absents = document.querySelectorAll('input[type="radio"][value="Absent"]:checked').length;
+        document.getElementById('present_display').innerText = presents;
+        document.getElementById('absent_display').innerText = absents;
+    }
+
+    function reloadWithDate() {
+        const date = document.getElementById('attendance_date').value;
+        const allotmentId = "{{ selected_allotment.id }}";
+        window.location.href = `{{ url_for('mark_attendance') }}?allotment_id=${allotmentId}&date=${date}`;
+    }
+
+    // Initialize counts on page load
+    window.onload = updateCounts;
+</script>
+{% endif %}
 {% endblock %}

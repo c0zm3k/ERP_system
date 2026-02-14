@@ -5,7 +5,7 @@
 {% block content %}
 <div style="display: flex; justify-content: center; align-items: center; min-height: 60vh;">
     <div class="neumorph-card" style="width: 100%; max-width: 500px; padding: 40px;">
-        <h2 style="text-align: center; margin-bottom: 30px;">Add New Slot</h2>
+        <h2 style="text-align: center; margin-bottom: 30px;">Add new slort</h2>
         <form method="POST">
             <div style="margin-bottom: 20px;">
                 <label style="display: block; margin-bottom: 8px;">Day</label>
@@ -21,16 +21,15 @@
             <div style="margin-bottom: 25px;">
                 <label style="display: block; margin-bottom: 12px; font-weight: 600;">Start Time</label>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <select name="start_hour" class="neumorph-inset" style="flex: 1;" required>
-                        {% for i in range(1, 13) %}<option value="{{ '%02d' % i }}">{{ '%02d' % i }}</option>{% endfor
-                        %}
+                    <select name="start_hour" id="start_hour" class="neumorph-inset" style="flex: 1;" required>
+                        <!-- Options populated by script -->
                     </select>
                     <span>:</span>
                     <select name="start_minute" class="neumorph-inset" style="flex: 1;" required>
                         {% for i in range(0, 60, 5) %}<option value="{{ '%02d' % i }}">{{ '%02d' % i }}</option>{%
                         endfor %}
                     </select>
-                    <select name="start_period" class="neumorph-inset" style="flex: 1;" required>
+                    <select name="start_period" id="start_period" class="neumorph-inset" style="flex: 1;" required>
                         <option value="AM">AM</option>
                         <option value="PM">PM</option>
                     </select>
@@ -40,21 +39,52 @@
             <div style="margin-bottom: 30px;">
                 <label style="display: block; margin-bottom: 12px; font-weight: 600;">End Time</label>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <select name="end_hour" class="neumorph-inset" style="flex: 1;" required>
-                        {% for i in range(1, 13) %}<option value="{{ '%02d' % i }}">{{ '%02d' % i }}</option>{% endfor
-                        %}
+                    <select name="end_hour" id="end_hour" class="neumorph-inset" style="flex: 1;" required>
+                        <!-- Options populated by script -->
                     </select>
                     <span>:</span>
                     <select name="end_minute" class="neumorph-inset" style="flex: 1;" required>
                         {% for i in range(0, 60, 5) %}<option value="{{ '%02d' % i }}">{{ '%02d' % i }}</option>{%
                         endfor %}
                     </select>
-                    <select name="end_period" class="neumorph-inset" style="flex: 1;" required>
+                    <select name="end_period" id="end_period" class="neumorph-inset" style="flex: 1;" required>
                         <option value="AM">AM</option>
                         <option value="PM">PM</option>
                     </select>
                 </div>
             </div>
+
+            <script>
+                function updateHours(periodId, hourId) {
+                    const period = document.getElementById(periodId).value;
+                    const hourSelect = document.getElementById(hourId);
+                    const currentVal = hourSelect.value;
+                    hourSelect.innerHTML = '';
+
+                    let hours = [];
+                    if (period === 'AM') {
+                        hours = ['06', '07', '08', '09', '10', '11'];
+                    } else {
+                        // 12 PM is noon, then 01 PM to 09 PM
+                        hours = ['12', '01', '02', '03', '04', '05', '06', '07', '08', '09'];
+                    }
+
+                    hours.forEach(h => {
+                        const opt = document.createElement('option');
+                        opt.value = h;
+                        opt.textContent = h;
+                        if (h === currentVal) opt.selected = true;
+                        hourSelect.appendChild(opt);
+                    });
+                }
+
+                document.getElementById('start_period').addEventListener('change', () => updateHours('start_period', 'start_hour'));
+                document.getElementById('end_period').addEventListener('change', () => updateHours('end_period', 'end_hour'));
+
+                // Initialize
+                updateHours('start_period', 'start_hour');
+                updateHours('end_period', 'end_hour');
+            </script>
             <div style="margin-bottom: 25px;">
                 <label style="display: block; margin-bottom: 8px; font-weight: 600;">Subject</label>
                 <input type="text" name="subject" list="subject_list" class="neumorph-inset" required
@@ -64,25 +94,6 @@
                     <option value="{{ s }}">
                         {% endfor %}
                 </datalist>
-            </div>
-
-            <div style="margin-bottom: 25px;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Class</label>
-                <input type="text" name="class_name" list="class_list" class="neumorph-inset" required
-                    placeholder="Select or type class...">
-                <datalist id="class_list">
-                    {% for c in classes %}
-                    <option value="{{ c }}">
-                        {% endfor %}
-                </datalist>
-            </div>
-            <div style="margin-bottom: 30px;">
-                <label style="display: block; margin-bottom: 8px;">Faculty</label>
-                <select name="faculty_id" class="neumorph-inset" required>
-                    {% for faculty in faculties %}
-                    <option value="{{ faculty.id }}">{{ faculty.user.username }} ({{ faculty.department }})</option>
-                    {% endfor %}
-                </select>
             </div>
             <button type="submit" class="neumorph-btn" style="width: 100%;">Add Slot</button>
         </form>

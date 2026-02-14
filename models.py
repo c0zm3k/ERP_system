@@ -1,5 +1,5 @@
 from datetime import datetime
-from app import db
+from extensions import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -11,9 +11,9 @@ class User(UserMixin, db.Model):
     image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
     
     # Relationships
-    student_profile = db.relationship('StudentDetails', backref='user', uselist=False)
-    faculty_profile = db.relationship('FacultyDetails', backref='user', uselist=False)
-    leaves = db.relationship('Leaves', backref='user', lazy='dynamic')
+    student_profile = db.relationship('StudentDetails', backref='user', uselist=False, cascade="all, delete-orphan")
+    faculty_profile = db.relationship('FacultyDetails', backref='user', uselist=False, cascade="all, delete-orphan")
+    leaves = db.relationship('Leaves', backref='user', lazy='dynamic', cascade="all, delete-orphan")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -30,7 +30,7 @@ class StudentDetails(db.Model):
     class_name = db.Column(db.String(50), nullable=False, default='A')
     semester = db.Column(db.Integer, nullable=False)
     
-    attendances = db.relationship('Attendance', backref='student', lazy='dynamic')
+    attendances = db.relationship('Attendance', backref='student', lazy='dynamic', cascade="all, delete-orphan")
 
 class FacultyDetails(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -38,7 +38,7 @@ class FacultyDetails(db.Model):
     department = db.Column(db.String(100), nullable=False)
     designation = db.Column(db.String(100), nullable=False)
     
-    timetable_slots = db.relationship('Timetable', backref='faculty', lazy='dynamic')
+    timetable_slots = db.relationship('Timetable', backref='faculty', lazy='dynamic', cascade="all, delete-orphan")
 
 class Attendance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -53,7 +53,7 @@ class Timetable(db.Model):
     time_slot = db.Column(db.String(50), nullable=False) 
     subject = db.Column(db.String(100), nullable=False)
     class_name = db.Column(db.String(50), nullable=False, default='General')
-    faculty_id = db.Column(db.Integer, db.ForeignKey('faculty_details.id'), nullable=False)
+    faculty_id = db.Column(db.Integer, db.ForeignKey('faculty_details.id'), nullable=True)
 
 class Leaves(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -69,4 +69,4 @@ class ClassAllotment(db.Model):
     class_name = db.Column(db.String(50), nullable=False)
     subject = db.Column(db.String(100), nullable=False)
     
-    faculty = db.relationship('FacultyDetails', backref=db.backref('allotments', lazy='dynamic'))
+    faculty = db.relationship('FacultyDetails', backref=db.backref('allotments', lazy='dynamic', cascade="all, delete-orphan"))

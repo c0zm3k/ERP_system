@@ -21,7 +21,8 @@
         {% if user.role == 'Faculty' %}
         <div style="margin-bottom: 20px;">
             <label style="display: block; margin-bottom: 8px; font-weight: 600;">Department</label>
-            <input type="text" name="department" value="{{ user.faculty_profile.department }}" class="neumorph-inset">
+            <input type="text" name="department" value="{{ user.faculty_profile.department }}" class="neumorph-inset"
+                list="dept_list">
         </div>
         <div style="margin-bottom: 20px;">
             <label style="display: block; margin-bottom: 8px; font-weight: 600;">Designation</label>
@@ -35,25 +36,31 @@
         </div>
         <div style="margin-bottom: 20px;">
             <label style="display: block; margin-bottom: 8px; font-weight: 600;">Course</label>
-            <input type="text" name="course" value="{{ user.student_profile.course }}" class="neumorph-inset">
+            <input type="text" name="course" value="{{ user.student_profile.course }}" class="neumorph-inset"
+                list="course_list">
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-            <div>
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Department</label>
-                <input type="text" name="department" value="{{ user.student_profile.department }}"
-                    class="neumorph-inset">
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Class</label>
-                <input type="text" name="class_name" value="{{ user.student_profile.class_name }}"
-                    class="neumorph-inset">
-            </div>
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Department</label>
+            <input type="text" name="department" value="{{ user.student_profile.department }}" class="neumorph-inset"
+                list="dept_list">
         </div>
         <div style="margin-bottom: 20px;">
             <label style="display: block; margin-bottom: 8px; font-weight: 600;">Semester</label>
             <input type="number" name="semester" value="{{ user.student_profile.semester }}" class="neumorph-inset">
         </div>
         {% endif %}
+
+        <!-- Datalists for dynamic dropdowns -->
+        <datalist id="dept_list">
+            {% for dept in departments %}
+            <option value="{{ dept }}">
+                {% endfor %}
+        </datalist>
+        <datalist id="course_list">
+            {% for course in courses %}
+            <option value="{{ course }}">
+                {% endfor %}
+        </datalist>
 
         <div style="display: flex; gap: 15px; margin-top: 30px;">
             <button type="submit" class="neumorph-btn" style="flex: 1; color: var(--teal-cyan);">Save Changes</button>
