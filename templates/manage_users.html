@@ -63,25 +63,33 @@
         </div>
 
         <div id="faculty-fields" style="display: none; margin-bottom: 20px;">
-            <div class="grid-3">
+            <div class="grid-3" style="gap: 20px;">
                 <div>
                     <label
                         style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">Department</label>
-                    <input type="text" name="faculty_department" class="nm-input">
+                    <select name="faculty_department" class="nm-input" id="faculty_department" required>
+                        <option value="">Select department</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept }}">{{ dept }}</option>
+                        {% endfor %}
+                    </select>
+                    <p style="margin-top: 6px; font-size: 0.7rem; opacity: 0.8;">Required. Manager is auto-assigned from this department if not selected below.</p>
+                </div>
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">Manager (optional)</label>
+                    <select name="faculty_hod_id" class="nm-input" id="faculty_hod_id">
+                        <option value="">Auto-assign from department</option>
+                        {% for hod in hods %}
+                        <option value="{{ hod.id }}" data-department="{{ hod.department }}">{{ hod.user.username }} ({{ hod.department }} - {{ hod.rank }})</option>
+                        {% endfor %}
+                    </select>
+                    <p style="margin-top: 6px; font-size: 0.7rem; opacity: 0.8;">Pick a manager or leave as auto to use the department HOD.</p>
                 </div>
                 <div>
                     <label
                         style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">Designation</label>
                     <input type="text" name="designation" class="nm-input" placeholder="e.g. Professor">
-                </div>
-                <div>
-                    <label
-                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">Manager</label>
-                    <select name="hod_id" class="nm-input">
-                        {% for hod in hods %}
-                        <option value="{{ hod.id }}">{{ hod.user.username }} ({{ hod.department }})</option>
-                        {% endfor %}
-                    </select>
                 </div>
             </div>
         </div>
@@ -95,21 +103,56 @@
     const hodFields = document.getElementById('hod-fields');
     const facultyFields = document.getElementById('faculty-fields');
 
+    const facultyDeptSelect = document.getElementById('faculty_department');
+    const facultyHodSelect = document.getElementById('faculty_hod_id');
     function updateVisibility() {
         hodFields.style.display = roleSelect.value === 'HOD' ? 'block' : 'none';
         facultyFields.style.display = roleSelect.value === 'Faculty' ? 'block' : 'none';
+        if (facultyDeptSelect) facultyDeptSelect.required = roleSelect.value === 'Faculty';
     }
+    function updateManagerFromDepartment() {
+        if (!facultyHodSelect || !facultyDeptSelect) return;
+        var dept = facultyDeptSelect.value;
+        if (!dept) { facultyHodSelect.value = ''; return; }
+        var options = facultyHodSelect.querySelectorAll('option[data-department]');
+        for (var i = 0; i < options.length; i++) {
+            if (options[i].getAttribute('data-department') === dept) {
+                facultyHodSelect.value = options[i].value;
+                return;
+            }
+        }
+        facultyHodSelect.value = '';
+    }
+    if (facultyDeptSelect) facultyDeptSelect.addEventListener('change', updateManagerFromDepartment);
 
     roleSelect.addEventListener('change', updateVisibility);
-    // Initialize visibility on load
     updateVisibility();
 </script>
 </div>
 
 <div class="nm-table-container">
-    <div style="padding: 20px 10px 40px; display: flex; justify-content: space-between; align-items: center;">
+    <div style="padding: 20px 10px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
         <h2 style="font-weight: 900; letter-spacing: -1px;">User List</h2>
-        <span class="nm-badge" style="background: var(--accent-color); color: white;">All Users</span>
+        <form method="get" action="/admin/users" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <label style="font-weight: 700; font-size: 0.75rem; color: var(--text-secondary);">Role:</label>
+            <select name="filter_role" class="nm-input" style="padding: 10px 14px; min-width: 140px;" onchange="this.form.submit()">
+                <option value="">All roles</option>
+                <option value="Admin" {{ 'selected' if filter_role == 'Admin' else '' }}>Admin</option>
+                <option value="HOD" {{ 'selected' if filter_role == 'HOD' else '' }}>HOD</option>
+                <option value="Faculty" {{ 'selected' if filter_role == 'Faculty' else '' }}>Faculty</option>
+                <option value="Student" {{ 'selected' if filter_role == 'Student' else '' }}>Student</option>
+            </select>
+            <label style="font-weight: 700; font-size: 0.75rem; color: var(--text-secondary);">Department:</label>
+            <select name="filter_department" class="nm-input" style="padding: 10px 14px; min-width: 160px;" onchange="this.form.submit()">
+                <option value="">All departments</option>
+                {% for d in all_departments %}
+                <option value="{{ d }}" {{ 'selected' if filter_department == d else '' }}>{{ d }}</option>
+                {% endfor %}
+            </select>
+            {% if filter_role or filter_department %}
+            <a href="/admin/users" class="nm-btn" style="padding: 10px 16px; font-size: 0.8rem;">Clear filters</a>
+            {% endif %}
+        </form>
     </div>
 
     <table>
@@ -123,20 +166,29 @@
             </tr>
         </thead>
         <tbody>
+            {% for a in admins %}
+            <tr>
+                <td style="font-weight: 900; font-size: 1.1rem; color: var(--accent-color);">{{ a.username }}</td>
+                <td><span class="nm-badge" style="font-size: 0.65rem; background: var(--accent-color); color: white;">Admin</span></td>
+                <td style="opacity: 0.7;">—</td>
+                <td style="opacity: 0.5;">—</td>
+                <td style="text-align: right;">
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <a href="/admin/user/edit/{{ a.id }}" class="nm-btn" style="padding: 8px 16px; font-size: 0.7rem;">Edit</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
             {% for h in hods %}
             <tr>
                 <td style="font-weight: 900; font-size: 1.1rem; color: var(--accent-color);">{{ h.user.username }}</td>
-                <td><span class="nm-badge" style="font-size: 0.65rem; background: var(--text-primary); color: white;">{{
-                        h.rank }}</span></td>
+                <td><span class="nm-badge" style="font-size: 0.65rem; background: var(--text-primary); color: white;">{{ h.rank }}</span></td>
                 <td style="opacity: 0.7; font-weight: 800;">{{ h.department }}</td>
-                <td style="opacity: 0.5; font-weight: 600;">System Administrator</td>
+                <td style="opacity: 0.5; font-weight: 600;">—</td>
                 <td style="text-align: right;">
                     <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                        <a href="/admin/user/edit/{{ h.user.id }}" class="nm-btn"
-                            style="padding: 8px 16px; font-size: 0.7rem;">Edit</a>
-                        <a href="/admin/user/delete/{{ h.user.id }}" class="nm-btn"
-                            style="padding: 8px 16px; font-size: 0.7rem; color: #ff6b6b;"
-                            onclick="return confirm('Delete HOD Account?')">Delete</a>
+                        <a href="/admin/user/edit/{{ h.user.id }}" class="nm-btn" style="padding: 8px 16px; font-size: 0.7rem;">Edit</a>
+                        <a href="/admin/user/delete/{{ h.user.id }}" class="nm-btn" style="padding: 8px 16px; font-size: 0.7rem; color: #ff6b6b;" onclick="return confirm('Delete HOD Account?')">Delete</a>
                     </div>
                 </td>
             </tr>
@@ -149,8 +201,21 @@
                 <td style="opacity: 0.7; font-weight: 700;">{{ f.hod.user.username if f.hod else 'Unassigned' }}</td>
                 <td style="text-align: right;">
                     <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                        <a href="/admin/user/edit/{{ f.user.id }}" class="nm-btn"
-                            style="padding: 8px 16px; font-size: 0.7rem;">Edit</a>
+                        <a href="/admin/user/edit/{{ f.user.id }}" class="nm-btn" style="padding: 8px 16px; font-size: 0.7rem;">Edit</a>
+                        <a href="/admin/user/delete/{{ f.user.id }}" class="nm-btn" style="padding: 8px 16px; font-size: 0.7rem; color: #ff6b6b;" onclick="return confirm('Delete this faculty account?')">Delete</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            {% for s in students %}
+            <tr>
+                <td style="font-weight: 800; font-size: 1.1rem;">{{ s.username }}</td>
+                <td><span class="nm-badge" style="font-size: 0.65rem;">Student</span></td>
+                <td style="opacity: 0.7;">{{ s.student_profile.department if s.student_profile else '—' }}</td>
+                <td style="opacity: 0.7;">{{ s.student_profile.hod.user.username if (s.student_profile and s.student_profile.hod) else '—' }}</td>
+                <td style="text-align: right;">
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <a href="/admin/user/edit/{{ s.id }}" class="nm-btn" style="padding: 8px 16px; font-size: 0.7rem;">Edit</a>
                     </div>
                 </td>
             </tr>

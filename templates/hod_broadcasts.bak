@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Department Broadcasts - Lumen ERP{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 30px;">
+    <h1 class="hero-text" style="margin-bottom: 12px;">Department Broadcasts</h1>
+    <p style="color: var(--text-secondary); font-weight: 700; font-size: 1rem;">Create and manage announcements for {{ current_user.hod_profile.department }} department only</p>
+</div>
+
+<!-- Create New Broadcast Form -->
+<div class="nm-card" style="padding: 24px; margin-bottom: 40px;">
+    <h2 style="font-weight: 900; margin-bottom: 25px; letter-spacing: -1px;">📢 Create Department Broadcast</h2>
+    
+    <form method="POST" action="{{ url_for('hod.manage_dept_broadcasts') }}">
+        <div style="margin-bottom: 30px;">
+            <label style="display: block; font-weight: 800; margin-bottom: 12px; color: var(--text-secondary); font-size: 1.05rem;">
+                📝 Announcement Title
+            </label>
+            <input type="text" name="title" required placeholder="e.g., Department Meeting on Friday"
+                   style="width: 100%; padding: 14px 18px; border: 2.5px solid var(--accent-color); border-radius: 10px; 
+                          font-size: 1rem; background: white; font-weight: 600; transition: all 0.3s ease;
+                          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); outline: none;"
+                   onmouseover="this.style.boxShadow='0 4px 16px rgba(0, 0, 0, 0.12)'; this.style.borderColor='var(--accent-color)';"
+                   onmouseout="this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.08)';"
+                   onfocus="this.style.boxShadow='0 0 0 4px rgba(102, 126, 234, 0.1)'; this.style.borderColor='var(--accent-color)';"
+                   onblur="this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.08)';">
+        </div>
+
+        <div style="margin-bottom: 30px;">
+            <label style="display: block; font-weight: 800; margin-bottom: 12px; color: var(--text-secondary); font-size: 1.05rem;">
+                💬 Message Content
+            </label>
+            <textarea name="content" required placeholder="Write your announcement here..."
+                      style="width: 100%; padding: 14px 18px; border: 2.5px solid var(--accent-color); border-radius: 10px; 
+                             font-size: 1rem; background: white; font-weight: 600; min-height: 140px; resize: vertical; 
+                             font-family: inherit; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); 
+                             outline: none; line-height: 1.5;"
+                      onmouseover="this.style.boxShadow='0 4px 16px rgba(0, 0, 0, 0.12)'; this.style.borderColor='var(--accent-color)';"
+                      onmouseout="this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.08)';"
+                      onfocus="this.style.boxShadow='0 0 0 4px rgba(102, 126, 234, 0.1)'; this.style.borderColor='var(--accent-color)';"
+                      onblur="this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.08)';">
+            </textarea>
+        </div>
+
+        <div style="padding: 16px 18px; background: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; border-radius: 8px; margin-bottom: 30px;">
+            <p style="margin: 0; font-weight: 700; color: #3498db; font-size: 0.95rem;">
+                ℹ️ This announcement will be visible only to faculty and students in the {{ current_user.hod_profile.department }} department.
+            </p>
+        </div>
+
+        <button type="submit" class="nm-btn" style="width: 100%; padding: 16px; background: linear-gradient(135deg, var(--accent-color), #667eea); 
+                                                   color: white; font-weight: 800; border: none; border-radius: 10px; cursor: pointer; 
+                                                   font-size: 1.05rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                                                   letter-spacing: 0.5px;"
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.6)';"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)';"
+                onmousedown="this.style.transform='translateY(0)';">
+            📤 Post Announcement
+        </button>
+    </form>
+</div>
+
+<!-- Broadcasts List -->
+<div class="nm-table-container">
+    <div style="padding: 16px 0 24px;">
+        <h2 style="font-weight: 900; letter-spacing: -1px; margin: 0; font-size: 1.3rem;">Active Department Announcements</h2>
+    </div>
+
+    {% if broadcasts %}
+    <div style="display: grid; grid-template-columns: 1fr; gap: 18px; padding: 0;">
+        {% for broadcast in broadcasts %}
+        <div class="nm-card" style="padding: 18px; border-left: 5px solid {% if broadcast.is_pinned %}var(--accent-color){% else %}#9b59b6{% endif %};">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div>
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 8px;">
+                        <h3 style="margin: 0; font-weight: 900; font-size: 1.05rem; word-break: break-word;">{{ broadcast.title }}</h3>
+                        {% if broadcast.is_pinned %}
+                        <span class="nm-badge" style="background: rgba(255, 193, 7, 0.2); color: #ffc107; font-weight: 800; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; white-space: nowrap;">📌 PIN</span>
+                        {% endif %}
+                    </div>
+                    <p style="margin: 0; font-size: 0.8rem; color: var(--text-secondary); font-weight: 700;">
+                        By {{ broadcast.created_by.username }} • {{ broadcast.created_at.strftime('%b %d, %Y • %I:%M %p') }}
+                    </p>
+                </div>
+                
+                <div style="background: var(--light-bg); padding: 14px; border-radius: 8px; line-height: 1.5; color: var(--text-secondary); font-weight: 600; white-space: pre-wrap; border-left: 4px solid #9b59b6; font-size: 0.95rem; word-break: break-word;">
+                    {{ broadcast.content }}
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                    <form method="POST" action="{{ url_for('hod.pin_dept_broadcast', id=broadcast.id) }}" style="display: inline;">
+                        <button type="submit" class="nm-badge" style="background: rgba(255, 193, 7, 0.1); color: #ffc107; border: 1px solid #ffc107; cursor: pointer; font-weight: 700; padding: 6px 10px; border-radius: 4px; font-size: 0.8rem; min-height: 32px;">
+                            {% if broadcast.is_pinned %}📌 Unpin{% else %}📌 Pin{% endif %}
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('hod.delete_dept_broadcast', id=broadcast.id) }}" style="display: inline;">
+                        <button type="submit" class="nm-badge" style="background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid #e74c3c; cursor: pointer; font-weight: 700; padding: 6px 10px; border-radius: 4px; font-size: 0.8rem; min-height: 32px;" onclick="return confirm('Delete this announcement?');">
+                            🗑️ Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="padding: 40px 20px; text-align: center;">
+        <p style="color: var(--text-secondary); font-weight: 700; opacity: 0.5; font-size: 1rem;">No announcements yet. Create one above to start!</p>
+    </div>
+    {% endif %}
+</div>
+
+<div style="margin-bottom: 30px;"></div>
+{% endblock %}

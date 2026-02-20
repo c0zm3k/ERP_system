@@ -25,7 +25,13 @@
                 </div>
             </a>
 
-            <div class="nav-links">
+            <button class="hamburger" id="hamburger-menu" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <div class="nav-links" id="nav-menu">
                 {% if current_user.is_authenticated or current_user %}
                 <a href="/dashboard" class="nav-item">Home</a>
                 {% if current_user.role == 'Admin' %}
@@ -34,7 +40,7 @@
                 {% if current_user.role == 'HOD' %}
                 <a href="/hod" class="nav-item">HOD Panel</a>
                 {% endif %}
-                <a href="/logout" class="nav-item">Logout</a>
+                <a href="/logout" class="nav-item logout">Logout</a>
                 {% else %}
                 <a href="/login" class="nav-item">Login</a>
                 {% endif %}
@@ -72,10 +78,6 @@
         });
 
         // Auto-dismiss flash messages
-        window.onclick = function (event) {
-            // Optional: Dismiss on click
-        }
-
         setTimeout(function () {
             document.querySelectorAll('.flash-message').forEach(function (msg) {
                 msg.style.opacity = '0';

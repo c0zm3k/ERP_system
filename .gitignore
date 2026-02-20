@@ -26,6 +26,10 @@ venv/
 ENV/
 .venv/
 
+# Environment
+.env
+.env.local
+
 # Database
 instance/
 *.db

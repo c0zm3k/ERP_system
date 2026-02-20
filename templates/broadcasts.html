@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Broadcasts - Lumen ERP{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 30px;">
+    <h1 class="hero-text" style="margin-bottom: 12px;">📢 Announcements & Broadcasts</h1>
+    <p style="color: var(--text-secondary); font-weight: 700; font-size: 1rem;">Stay updated with institution-wide and department announcements</p>
+</div>
+
+<!-- Institution-wide Broadcasts -->
+<div style="margin-bottom: 40px;">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 24px;">
+        <h2 style="font-weight: 900; letter-spacing: -1px; margin: 0; font-size: 1.4rem;">🏫 Institution-wide Announcements</h2>
+        <span id="inst-count" class="nm-badge" style="background: rgba(52, 152, 219, 0.2); color: #3498db; font-weight: 800;">{{ institution_broadcasts | length }}</span>
+    </div>
+
+    {% if institution_broadcasts %}
+    <div data-broadcasts="institution" style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 40px;">
+        {% for broadcast in institution_broadcasts %}
+        <div class="nm-card" style="padding: 20px; border-left: 5px solid {% if broadcast.is_pinned %}#ffc107{% else %}#3498db{% endif %}; animation: {% if broadcast.is_pinned %}slideIn 0.3s ease-out{% endif %};">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div>
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 8px;">
+                        <h3 style="margin: 0; font-weight: 900; font-size: 1.1rem; color: var(--accent-color); word-break: break-word;">{{ broadcast.title }}</h3>
+                        {% if broadcast.is_pinned %}
+                        <span class="nm-badge" style="background: rgba(255, 193, 7, 0.3); color: #ffc107; font-weight: 900; padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; white-space: nowrap;">📌 PINNED</span>
+                        {% endif %}
+                    </div>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); font-weight: 700;">
+                        By Admin • {{ broadcast.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+                    </p>
+                </div>
+                
+                <div style="background: var(--light-bg); padding: 16px; border-radius: 8px; line-height: 1.6; color: var(--text-secondary); font-weight: 600; white-space: pre-wrap; border-left: 4px solid var(--accent-color); word-break: break-word;">
+                    {{ broadcast.content }}
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 15px; font-size: 0.85rem; opacity: 0.7; padding-top: 8px; border-top: 1px solid var(--border-color);">
+                    <span>Visibility: <strong style="color: var(--text-secondary);">All Users</strong></span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="nm-card" style="padding: 30px 20px; text-align: center; margin-bottom: 40px;">
+        <p style="color: var(--text-secondary); font-weight: 700; opacity: 0.5; font-size: 1rem;">No institution-wide announcements at the moment.</p>
+    </div>
+    {% endif %}
+</div>
+</div>
+
+<!-- Department Broadcasts -->
+{% if dept_broadcasts %}
+<div style="margin-bottom: 40px;">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 24px;">
+        <h2 style="font-weight: 900; letter-spacing: -1px; margin: 0; font-size: 1.4rem;">🏛️ Department Announcements</h2>
+        <span id="dept-count" class="nm-badge" style="background: rgba(155, 89, 182, 0.2); color: #9b59b6; font-weight: 800;">{{ dept_broadcasts | length }}</span>
+    </div>
+
+    <div data-broadcasts="dept" style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 40px;">
+        {% for broadcast in dept_broadcasts %}
+        <div class="nm-card" style="padding: 20px; border-left: 5px solid {% if broadcast.is_pinned %}#ffc107{% else %}#9b59b6{% endif %}; animation: {% if broadcast.is_pinned %}slideIn 0.3s ease-out{% endif %};">
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div>
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 8px;">
+                        <h3 style="margin: 0; font-weight: 900; font-size: 1.1rem; color: #9b59b6; word-break: break-word;">{{ broadcast.title }}</h3>
+                        {% if broadcast.is_pinned %}
+                        <span class="nm-badge" style="background: rgba(255, 193, 7, 0.3); color: #ffc107; font-weight: 900; padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; white-space: nowrap;">📌 PINNED</span>
+                        {% endif %}
+                    </div>
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); font-weight: 700;">
+                        By {{ broadcast.created_by.username }} • {{ broadcast.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+                    </p>
+                </div>
+                
+                <div style="background: var(--light-bg); padding: 16px; border-radius: 8px; line-height: 1.6; color: var(--text-secondary); font-weight: 600; white-space: pre-wrap; border-left: 4px solid #9b59b6; word-break: break-word;">
+                    {{ broadcast.content }}
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 15px; font-size: 0.85rem; opacity: 0.7; padding-top: 8px; border-top: 1px solid var(--border-color);">
+                    <span>Visibility: <strong style="color: var(--text-secondary);">{{ broadcast.department }} Department</strong></span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div style="margin-bottom: 50px;"></div>
+
+<style>
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.5;
+            transform: scale(1.2);
+        }
+    }
+    
+    .nm-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .nm-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .new-broadcast {
+        animation: slideIn 0.5s ease-out;
+    }
+</style>
+
+<script>
+    const REFRESH_INTERVAL = 60000; // 60 seconds
+    let lastRefreshTime = new Date().getTime();
+    let institutionBroadcastIds = new Set({{ institution_broadcasts | map(attribute='id') | list | tojson }});
+    let deptBroadcastIds = new Set({{ dept_broadcasts | map(attribute='id') | list | tojson }});
+
+    async function refreshBroadcasts() {
+        try {
+            const response = await fetch('{{ url_for("main.refresh_broadcasts") }}');
+            const data = await response.json();
+            
+            // Update institution broadcasts
+            updateBroadcastCount('institution', data.institution_broadcasts.length);
+            addNewBroadcasts('institution', data.institution_broadcasts);
+            
+            // Update department broadcasts
+            updateBroadcastCount('dept', data.dept_broadcasts.length);
+            addNewBroadcasts('dept', data.dept_broadcasts);
+            
+            lastRefreshTime = new Date().getTime();
+        } catch (error) {
+            console.error('Error refreshing broadcasts:', error);
+        }
+    }
+
+    function updateBroadcastCount(type, count) {
+        const badge = type === 'institution' ? 
+            document.getElementById('inst-count') : 
+            document.getElementById('dept-count');
+        if (badge) {
+            badge.textContent = count;
+        }
+    }
+
+    function addNewBroadcasts(type, broadcasts) {
+        const ids = type === 'institution' ? institutionBroadcastIds : deptBroadcastIds;
+        const container = type === 'institution' ? 
+            document.querySelector('[data-broadcasts="institution"]') : 
+            document.querySelector('[data-broadcasts="dept"]');
+        
+        if (!container) return;
+
+        broadcasts.forEach(broadcast => {
+            if (!ids.has(broadcast.id)) {
+                ids.add(broadcast.id);
+                const broadcastHTML = createBroadcastElement(broadcast, type);
+                
+                // Insert at the beginning
+                const firstCard = container.querySelector('.nm-card');
+                if (firstCard) {
+                    firstCard.insertAdjacentHTML('beforebegin', broadcastHTML);
+                    // Animate the new card
+                    const newCard = container.querySelector('.new-broadcast');
+                    if (newCard) {
+                        newCard.addEventListener('animationend', () => {
+                            newCard.classList.remove('new-broadcast');
+                        });
+                    }
+                } else {
+                    container.innerHTML = broadcastHTML;
+                }
+            }
+        });
+    }
+
+    function createBroadcastElement(broadcast, type) {
+        const color = type === 'institution' ? '#3498db' : '#9b59b6';
+        const pinnedColor = broadcast.is_pinned ? '#ffc107' : color;
+        
+        return `
+            <div class="nm-card new-broadcast" style="padding: 25px; border-left: 5px solid ${pinnedColor};">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                            <h3 style="margin: 0; font-weight: 900; font-size: 1.2rem; color: ${type === 'institution' ? 'var(--accent-color)' : '#9b59b6'};">${escape(broadcast.title)}</h3>
+                            ${broadcast.is_pinned ? '<span class="nm-badge" style="background: rgba(255, 193, 7, 0.3); color: #ffc107; font-weight: 900; padding: 6px 10px; border-radius: 4px; font-size: 0.8rem;">📌 PINNED</span>' : ''}
+                        </div>
+                        <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: var(--text-secondary); font-weight: 700;">
+                            By ${escape(broadcast.created_by)} • ${broadcast.created_at}
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="background: var(--light-bg); padding: 18px; border-radius: 8px; margin: 15px 0; line-height: 1.7; color: var(--text-secondary); font-weight: 600; white-space: pre-wrap; border-left: 4px solid ${type === 'institution' ? 'var(--accent-color)' : '#9b59b6'};">
+                    ${escape(broadcast.content)}
+                </div>
+
+                <div style="display: flex; gap: 20px; font-size: 0.85rem; opacity: 0.7; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                    <span>Visibility: <strong style="color: var(--text-secondary);">${type === 'institution' ? 'All Users' : broadcast.department + ' Department'}</strong></span>
+                </div>
+            </div>
+        `;
+    }
+
+    function escape(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Start auto-refresh silently in background
+    setInterval(refreshBroadcasts, REFRESH_INTERVAL);
+</script>
+{% endblock %}

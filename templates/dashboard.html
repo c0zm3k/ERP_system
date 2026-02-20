@@ -78,6 +78,17 @@
                 Quick Tools
             </h2>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                {% if current_user.role == 'Student' %}
+                <a href="/my_attendance" class="nm-btn"
+                    style="padding: 20px; font-size: 0.85rem; background: var(--surface-color); box-shadow: var(--nm-btn-hover);">My
+                    Attendance</a>
+                <a href="/attendance/analysis" class="nm-btn"
+                    style="padding: 20px; font-size: 0.85rem; background: var(--surface-color); box-shadow: var(--nm-btn-hover);">Attendance
+                    Analysis</a>
+                {% endif %}
+                <a href="/broadcasts" class="nm-btn"
+                    style="padding: 20px; font-size: 0.85rem; background: var(--surface-color); box-shadow: var(--nm-btn-hover);">📢
+                    Broadcasts</a>
                 <a href="/leaves" class="nm-btn"
                     style="padding: 20px; font-size: 0.85rem; background: var(--surface-color); box-shadow: var(--nm-btn-hover);">Leave
                     History</a>
@@ -96,21 +107,22 @@
         <!-- Academic Load / Info -->
         <div class="nm-inset" style="padding: 40px; border-radius: var(--radius-xl);">
             {% if current_user.role == 'Faculty' %}
-            <h2 style="font-weight: 900; margin-bottom: 30px; letter-spacing: -1.5px;">My Classes</h2>
+            <h2 style="font-weight: 900; margin-bottom: 30px; letter-spacing: -1.5px;">My Assigned Classes</h2>
             {% for allotment in allotments %}
             <div class="nm-card"
                 style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; padding: 20px 25px; border-radius: var(--radius-md); box-shadow: var(--nm-btn-hover);">
                 <div>
                     <div style="font-weight: 800; font-size: 1rem;">{{ allotment.subject }}</div>
-                    <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700;">{{
-                        allotment.class_name }} &bull; {{ allotment.department }}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700;">{{ allotment.class_name }} &bull; {{ allotment.department }}{% if allotment.course %} &bull; {{ allotment.course }}{% if allotment.semester is not none %} Sem {{ allotment.semester }}{% endif %}{% endif %}</div>
+                    {% if allotment.slot %}
+                    <div style="font-size: 0.7rem; color: var(--accent-color); font-weight: 700; margin-top: 4px;">{{ allotment.slot.name }} – {{ allotment.slot.day_of_week }} {{ allotment.slot.start_time }}-{{ allotment.slot.end_time }}</div>
+                    {% endif %}
                 </div>
                 <a href="/attendance?allotment_id={{ allotment.id }}" class="nm-badge"
                     style="color: var(--accent-color); font-weight: 900; text-decoration: none;">Take Attendance</a>
             </div>
             {% else %}
-            <div style="padding: 40px; text-align: center; color: var(--text-secondary); font-weight: 700;">No active
-                allotments recorded.</div>
+            <div style="padding: 40px; text-align: center; color: var(--text-secondary); font-weight: 700;">No assigned classes yet.</div>
             {% endfor %}
             {% elif current_user.role == 'Admin' %}
             <h2 style="font-weight: 900; margin-bottom: 20px; letter-spacing: -1.5px;">System Governance</h2>
@@ -122,10 +134,31 @@
                     style="width: 100%; padding: 15px; background: #31344b; color: white;">Open Admin Console</a>
             </div>
             {% else %}
-            <h2 style="font-weight: 900; margin-bottom: 30px; letter-spacing: -1.5px;">Campus News</h2>
-            <div class="nm-inset" style="padding: 25px; border-radius: var(--radius-md); opacity: 0.6;">
-                <p style="font-weight: 700; font-size: 0.9rem;">No active broadcasts at this time.</p>
+            <h2 style="font-weight: 900; margin-bottom: 30px; letter-spacing: -1.5px;">My Classes &amp; Faculty</h2>
+            {% if student_classes %}
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                {% for allotment in student_classes %}
+                <div class="nm-card" style="padding: 22px 28px; border-radius: var(--radius-md); box-shadow: var(--nm-btn-hover);">
+                    <div style="font-weight: 900; font-size: 1.05rem; color: var(--accent-color); margin-bottom: 8px;">{{ allotment.subject }}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 700; margin-bottom: 10px;">
+                        {{ allotment.class_name }}{% if allotment.course %} &bull; {{ allotment.course }}{% if allotment.semester is not none %} &bull; Sem {{ allotment.semester }}{% endif %}{% endif %}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <span style="font-weight: 800; font-size: 0.85rem;">Faculty:</span>
+                        <span style="font-weight: 700; font-size: 0.9rem;">{{ allotment.faculty_name or allotment.faculty.user.username }}</span>
+                        <span style="font-size: 0.8rem; opacity: 0.85;">({{ allotment.faculty.designation }})</span>
+                    </div>
+                    {% if allotment.slot %}
+                    <div style="font-size: 0.75rem; color: var(--accent-color); font-weight: 700; margin-top: 8px;">{{ allotment.slot.name }} – {{ allotment.slot.day_of_week }} {{ allotment.slot.start_time }}-{{ allotment.slot.end_time }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
             </div>
+            {% else %}
+            <div class="nm-inset" style="padding: 40px; border-radius: var(--radius-md); opacity: 0.7;">
+                <p style="font-weight: 700; font-size: 0.9rem; color: var(--text-secondary);">No classes assigned to your batch yet. Your department/class/course/semester will appear here once the HOD assigns faculty.</p>
+            </div>
+            {% endif %}
             {% endif %}
         </div>
     </div>

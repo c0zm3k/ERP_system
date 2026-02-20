@@ -100,19 +100,35 @@
                 <h3 style="font-weight: 900; margin-bottom: 15px;">Leave Requests</h3>
                 <p style="color: var(--text-secondary); margin-bottom: 30px; font-weight: 600;">Review and approve
                     leaves for students and teachers.</p>
-                <a href="/hod/allot_class" class="nm-btn"
+                <a href="/leaves" class="nm-btn"
                     style="width: 100%; background: var(--surface-color); box-shadow: var(--nm-btn-hover);">Check Leave
                     List</a>
             </div>
 
             <div class="nm-inset"
+                style="padding: 40px; text-align: left; border-radius: var(--radius-xl);">
+                <h3 style="font-weight: 900; margin-bottom: 15px;">📢 Department Broadcasts</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 30px; font-weight: 600;">Send announcements to your department members.</p>
+                <a href="/hod/broadcasts" class="nm-btn"
+                    style="width: 100%; background: var(--surface-color); box-shadow: var(--nm-btn-hover);">Manage Broadcasts</a>
+            </div>
+
+            <div class="nm-inset"
+                style="padding: 40px; text-align: left; border-radius: var(--radius-xl);">
+                <h3 style="font-weight: 900; margin-bottom: 15px;">📡 View All Broadcasts</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 30px; font-weight: 600;">Check all announcements from admin and department.</p>
+                <a href="/broadcasts" class="nm-btn"
+                    style="width: 100%; background: var(--surface-color); box-shadow: var(--nm-btn-hover);">View Broadcasts</a>
+            </div>
+
+            <div class="nm-inset"
                 style="padding: 40px; text-align: left; border-radius: var(--radius-xl); grid-column: span 2;">
                 <h3 style="font-weight: 900; margin-bottom: 15px;">Faculty Allotment</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 30px; font-weight: 600;">Assign faculty members
-                    to their classes and subjects.</p>
-                <a href="/hod/allot_class" class="nm-btn"
-                    style="width: 100%; background: var(--surface-color); box-shadow: var(--nm-btn-hover);">Assign
-                    Faculty</a>
+                <p style="color: var(--text-secondary); margin-bottom: 30px; font-weight: 600;">Assign faculty to classes and subjects. Create time slots first to avoid conflicts.</p>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <a href="/hod/slots" class="nm-btn" style="background: var(--surface-color); box-shadow: var(--nm-btn-hover);">Time Slots</a>
+                    <a href="/hod/allot_class" class="nm-btn" style="background: var(--surface-color); box-shadow: var(--nm-btn-hover);">Assign Faculty</a>
+                </div>
             </div>
         </div>
     </div>

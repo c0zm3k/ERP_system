@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Analysis - Lumen ERP{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 30px;">
+    <h1 class="hero-text" style="margin-bottom: 10px;">Attendance Analysis</h1>
+    <p style="color: var(--text-secondary); font-weight: 700;">Detailed breakdown of your attendance across different time periods</p>
+</div>
+
+<!-- Period Selector -->
+<div style="margin-bottom: 30px; display: flex; gap: 10px; flex-wrap: wrap;">
+    <a href="{{ url_for('main.attendance_analysis', period='day') }}" 
+       class="nm-button" style="{% if period == 'day' %}background: linear-gradient(135deg, var(--accent-color), #667eea); color: white; font-weight: 800;{% endif %}">
+        📅 Daily
+    </a>
+    <a href="{{ url_for('main.attendance_analysis', period='week') }}" 
+       class="nm-button" style="{% if period == 'week' %}background: linear-gradient(135deg, var(--accent-color), #667eea); color: white; font-weight: 800;{% endif %}">
+        📆 Weekly
+    </a>
+    <a href="{{ url_for('main.attendance_analysis', period='month') }}" 
+       class="nm-button" style="{% if period == 'month' %}background: linear-gradient(135deg, var(--accent-color), #667eea); color: white; font-weight: 800;{% endif %}">
+        📊 Monthly
+    </a>
+    <a href="{{ url_for('main.attendance_analysis', period='semester') }}" 
+       class="nm-button" style="{% if period == 'semester' %}background: linear-gradient(135deg, var(--accent-color), #667eea); color: white; font-weight: 800;{% endif %}">
+        🎓 Semester
+    </a>
+</div>
+
+<!-- Summary Cards -->
+<div style="margin-bottom: 40px;">
+    <div style="margin-bottom: 15px;">
+        <h3 style="font-weight: 800; color: var(--text-secondary); font-size: 0.9rem; text-transform: uppercase; opacity: 0.7;">{{ period_label }}</h3>
+    </div>
+    
+    <div class="grid-4" style="margin-bottom: 30px;">
+        <!-- Overall Percentage -->
+        <div class="nm-card" style="text-align: center; border-top: 4px solid var(--accent-color);">
+            <h4 style="color: var(--text-secondary); font-weight: 800; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 15px;">
+                Overall Attendance
+            </h4>
+            <div style="font-size: 2.5rem; font-weight: 900; color: var(--accent-color);">
+                {{ attendance_percentage }}%
+            </div>
+            <p style="font-size: 0.8rem; font-weight: 700; opacity: 0.6; margin-top: 10px;">
+                {% if attendance_percentage >= 75 %}
+                    <span style="color: #2ecc71;">✓ Excellent</span>
+                {% elif attendance_percentage >= 50 %}
+                    <span style="color: #f39c12;">⚠ Fair</span>
+                {% else %}
+                    <span style="color: #e74c3c;">✗ Poor</span>
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Days Present -->
+        <div class="nm-card" style="text-align: center; border-top: 4px solid #2ecc71;">
+            <h4 style="color: var(--text-secondary); font-weight: 800; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 15px;">
+                Days Present
+            </h4>
+            <div style="font-size: 2.5rem; font-weight: 900; color: #2ecc71;">
+                {{ present_count }}
+            </div>
+            <p style="font-size: 0.8rem; font-weight: 700; opacity: 0.6; margin-top: 10px;">of {{ total_classes }}</p>
+        </div>
+
+        <!-- Days Absent -->
+        <div class="nm-card" style="text-align: center; border-top: 4px solid #e74c3c;">
+            <h4 style="color: var(--text-secondary); font-weight: 800; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 15px;">
+                Days Absent
+            </h4>
+            <div style="font-size: 2.5rem; font-weight: 900; color: #e74c3c;">
+                {{ absent_count }}
+            </div>
+            <p style="font-size: 0.8rem; font-weight: 700; opacity: 0.6; margin-top: 10px;">of {{ total_classes }}</p>
+        </div>
+
+        <!-- Total Classes -->
+        <div class="nm-card" style="text-align: center; border-top: 4px solid #3498db;">
+            <h4 style="color: var(--text-secondary); font-weight: 800; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 15px;">
+                Total Classes
+            </h4>
+            <div style="font-size: 2.5rem; font-weight: 900; color: #3498db;">
+                {{ total_classes }}
+            </div>
+            <p style="font-size: 0.8rem; font-weight: 700; opacity: 0.6; margin-top: 10px;">Attended/Missed</p>
+        </div>
+    </div>
+</div>
+
+<!-- Progress Bar -->
+{% if total_classes > 0 %}
+<div class="nm-card" style="padding: 25px; margin-bottom: 30px;">
+    <h3 style="font-weight: 800; margin-bottom: 15px; font-size: 1.1rem;">Progress Bar</h3>
+    <div style="height: 20px; background: var(--light-bg); border-radius: 10px; overflow: hidden; box-shadow: inset 0 4px 8px rgba(0,0,0,0.05);">
+        <div style="height: 100%; width: {{ attendance_percentage }}%; background: linear-gradient(90deg, #2ecc71, #27ae60); transition: width 0.3s ease;"></div>
+    </div>
+    <p style="margin-top: 10px; font-weight: 700; opacity: 0.7; font-size: 0.9rem;">{{ present_count }} present out of {{ total_classes }} classes</p>
+</div>
+{% endif %}
+
+<!-- Subject-wise Breakdown -->
+{% if subject_stats %}
+<div class="nm-card" style="padding: 25px; margin-bottom: 30px;">
+    <h2 style="font-weight: 900; letter-spacing: -1px; margin-bottom: 20px;">Subject-wise Attendance</h2>
+    
+    {% if subject_stats | length > 0 %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+        {% for subject, stats in subject_stats.items() %}
+        <div style="padding: 15px; background: var(--light-bg); border-radius: 12px; border-left: 4px solid var(--accent-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h4 style="font-weight: 800; margin: 0;">{{ subject }}</h4>
+                <span style="font-size: 0.85rem; font-weight: 700; color: var(--accent-color);">{{ stats.percentage }}%</span>
+            </div>
+            <div style="height: 8px; background: rgba(0,0,0,0.05); border-radius: 4px; overflow: hidden; margin-bottom: 10px;">
+                <div style="height: 100%; width: {{ stats.percentage }}%; background: {% if stats.percentage >= 75 %}#2ecc71{% elif stats.percentage >= 50 %}#f39c12{% else %}#e74c3c{% endif %}; border-radius: 4px;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; opacity: 0.7;">
+                <span>Present: <span style="color: #2ecc71; font-weight: 800;">{{ stats.present }}</span></span>
+                <span>Absent: <span style="color: #e74c3c; font-weight: 800;">{{ stats.absent }}</span></span>
+                <span>Total: {{ stats.total }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="text-align: center; color: var(--text-secondary); font-weight: 700; opacity: 0.5; padding: 40px;">
+        No subject data available for this period.
+    </p>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Daily Breakdown -->
+{% if daily_breakdown %}
+<div class="nm-card" style="padding: 25px; margin-bottom: 30px;">
+    <h2 style="font-weight: 900; letter-spacing: -1px; margin-bottom: 20px;">Daily Breakdown</h2>
+    
+    {% if daily_breakdown | length > 0 %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+        {% for date_str, day_data in daily_breakdown.items() %}
+        <div style="padding: 15px; background: var(--light-bg); border-radius: 12px; border-left: 4px solid {% if day_data.present == 0 %}#e74c3c{% elif day_data.absent == 0 %}#2ecc71{% else %}#f39c12{% endif %};">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="font-weight: 800; margin: 0; font-size: 1rem;">{{ date_str }}</h4>
+                <span style="font-size: 0.8rem; font-weight: 700; padding: 4px 8px; background: {% if day_data.absent == 0 %}rgba(46,204,113,0.15){% elif day_data.present == 0 %}rgba(231,76,60,0.15){% else %}rgba(243,156,18,0.15){% endif %}; border-radius: 6px; color: {% if day_data.absent == 0 %}#2ecc71{% elif day_data.present == 0 %}#e74c3c{% else %}#f39c12{% endif %};">
+                    {{ day_data.present }}/{{ day_data.present + day_data.absent }}
+                </span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.85rem;">
+                {% for class in day_data.classes %}
+                <div style="display: flex; justify-content: space-between; padding: 6px 8px; background: rgba(0,0,0,0.02); border-radius: 6px; font-weight: 600;">
+                    <span>{{ class.subject }}</span>
+                    <span style="color: {% if class.status == 'Present' %}#2ecc71{% else %}#e74c3c{% endif %}; font-weight: 800;">
+                        {% if class.status == 'Present' %}✓ P{% else %}✗ A{% endif %}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="text-align: center; color: var(--text-secondary); font-weight: 700; opacity: 0.5; padding: 40px;">
+        No attendance records for this period.
+    </p>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Detailed Table -->
+{% if detailed_attendances %}
+<div class="nm-table-container">
+    <div style="padding: 20px 10px 40px;">
+        <h2 style="font-weight: 900; letter-spacing: -1px;">Detailed Records</h2>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="padding-left: 30px;">Date</th>
+                <th>Subject</th>
+                <th style="text-align: center;">Day</th>
+                <th style="text-align: right; padding-right: 30px;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in detailed_attendances %}
+            <tr>
+                <td style="padding-left: 30px; font-weight: 800; font-size: 1rem;">{{ entry.date }}</td>
+                <td style="font-weight: 700; opacity: 0.8;">{{ entry.subject or 'Unassigned' }}</td>
+                <td style="text-align: center; font-weight: 700; opacity: 0.7; font-size: 0.9rem;">
+                    {{ ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'][entry.date.weekday()] }}
+                </td>
+                <td style="text-align: right; padding-right: 30px;">
+                    <span class="nm-badge" style="background: {% if entry.status == 'Present' %}rgba(46,204,113,0.1){% else %}rgba(231,76,60,0.1){% endif %}; 
+                                       color: {% if entry.status == 'Present' %}#2ecc71{% else %}#e74c3c{% endif %};
+                                       box-shadow: none; border: 1px solid currentColor;">
+                        {{ entry.status | upper }}
+                    </span>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4"
+                    style="padding: 80px; text-align: center; color: var(--text-secondary); font-weight: 700; opacity: 0.5;">
+                    No attendance records found for this period.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- Tips Section -->
+<div class="nm-card" style="padding: 25px; margin-top: 30px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(240, 84, 84, 0.05)); border-left: 4px solid var(--accent-color);">
+    <h3 style="font-weight: 800; margin-bottom: 15px;">📌 Attendance Tips</h3>
+    <ul style="list-style: none; padding: 0; margin: 0;">
+        <li style="padding: 8px 0; font-weight: 700; opacity: 0.8;">
+            <span style="color: var(--accent-color);">✓</span> Maintain at least 75% attendance for academic progression
+        </li>
+        <li style="padding: 8px 0; font-weight: 700; opacity: 0.8;">
+            <span style="color: var(--accent-color);">✓</span> Review your daily breakdown to identify patterns
+        </li>
+        <li style="padding: 8px 0; font-weight: 700; opacity: 0.8;">
+            <span style="color: var(--accent-color);">✓</span> Submit proper leaves if you need to be absent
+        </li>
+        <li style="padding: 8px 0; font-weight: 700; opacity: 0.8;">
+            <span style="color: var(--accent-color);">✓</span> Check subject-wise performance for weak areas
+        </li>
+    </ul>
+</div>
+
+<div style="margin-bottom: 50px;">
+</div>
+
+<style>
+    @media (max-width: 768px) {
+        .grid-4 {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        
+        .nm-button {
+            flex: 1;
+            min-width: 80px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .grid-4 {
+            grid-template-columns: 1fr !important;
+        }
+        
+        .nm-button {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

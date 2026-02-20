@@ -4,7 +4,12 @@
 
 {% block content %}
 <div style="margin-bottom: 50px;">
-    <h1 class="hero-text" style="margin-bottom: 10px;">My Attendance</h1>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h1 class="hero-text">My Attendance</h1>
+        <a href="{{ url_for('main.attendance_analysis', period='month') }}" class="nm-button" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: 700;">
+            📊 View Analysis
+        </a>
+    </div>
     <p style="color: var(--text-secondary); font-weight: 700;">View your attendance history and statistics</p>
 </div>
 

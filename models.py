@@ -116,12 +116,66 @@ class Certificate(db.Model):
 
     student = db.relationship('StudentDetails', backref=db.backref('certificates', lazy='dynamic', cascade="all, delete-orphan"))
 
+class TimeSlot(db.Model):
+    """Time slots for classes (e.g. Mon 9-10, Tue 11-12). Created by HOD per department."""
+    id = db.Column(db.Integer, primary_key=True)
+    hod_id = db.Column(db.Integer, db.ForeignKey('hod_details.id'), nullable=False)
+    name = db.Column(db.String(80), nullable=False)  # e.g. "Slot 1", "Mon 9-10"
+    day_of_week = db.Column(db.String(20), nullable=False)  # Mon, Tue, Wed, Thu, Fri, Sat
+    start_time = db.Column(db.String(10), nullable=False)  # "09:00"
+    end_time = db.Column(db.String(10), nullable=False)    # "10:00"
+    department = db.Column(db.String(100), nullable=False)
+
+    hod = db.relationship('HODDetails', backref=db.backref('time_slots', lazy='dynamic', cascade="all, delete-orphan"))
+    allotments = db.relationship('ClassAllotment', backref='slot', lazy='dynamic', foreign_keys='ClassAllotment.slot_id')
+
+
 class ClassAllotment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     faculty_id = db.Column(db.Integer, db.ForeignKey('faculty_details.id'), nullable=False)
-    faculty_name = db.Column(db.String(100), nullable=True) # Searchable/Display name
+    faculty_name = db.Column(db.String(100), nullable=True)
     department = db.Column(db.String(100), nullable=False)
+    course = db.Column(db.String(100), nullable=True)       # e.g. B.Tech CS - must match StudentDetails.course
+    semester = db.Column(db.Integer, nullable=True)          # must match StudentDetails.semester
+    class_name = db.Column(db.String(50), nullable=False)    # section e.g. A, I-CS
+    subject = db.Column(db.String(100), nullable=False)
+    slot_id = db.Column(db.Integer, db.ForeignKey('time_slot.id'), nullable=True)
+
+    faculty = db.relationship('FacultyDetails', backref=db.backref('allotments', lazy='dynamic', cascade="all, delete-orphan"))
+
+
+class ClassAllotmentRequest(db.Model):
+    """When HOD wants to assign a faculty from another department, they create a request for that dept's HOD."""
+    id = db.Column(db.Integer, primary_key=True)
+    requesting_hod_id = db.Column(db.Integer, db.ForeignKey('hod_details.id'), nullable=False)
+    faculty_id = db.Column(db.Integer, db.ForeignKey('faculty_details.id'), nullable=False)
+    department = db.Column(db.String(100), nullable=False)
+    course = db.Column(db.String(100), nullable=True)
+    semester = db.Column(db.Integer, nullable=True)
     class_name = db.Column(db.String(50), nullable=False)
     subject = db.Column(db.String(100), nullable=False)
+    slot_id = db.Column(db.Integer, db.ForeignKey('time_slot.id'), nullable=True)
+    status = db.Column(db.String(30), nullable=False, default='Pending')  # Pending, Approved, Rejected
+    responding_hod_id = db.Column(db.Integer, db.ForeignKey('hod_details.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    requesting_hod = db.relationship('HODDetails', foreign_keys=[requesting_hod_id])
+    responding_hod = db.relationship('HODDetails', foreign_keys=[responding_hod_id])
+    faculty = db.relationship('FacultyDetails', backref='allotment_requests_received')
+
+class Broadcast(db.Model):
+    """Broadcast messages for institution-wide (Admin) or department-specific (HOD) announcements."""
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    scope = db.Column(db.String(20), nullable=False)  # 'institution' for Admin, 'department' for HOD
+    department = db.Column(db.String(100), nullable=True)  # Only set if scope is 'department'
+    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_pinned = db.Column(db.Boolean, default=False)
     
-    faculty = db.relationship('FacultyDetails', backref=db.backref('allotments', lazy='dynamic', cascade="all, delete-orphan"))
+    created_by = db.relationship('User', backref=db.backref('broadcasts', lazy='dynamic'))
+
+    def __repr__(self):
+        return f'<Broadcast {self.title}>'

@@ -18,7 +18,7 @@
         <a href="/attendance?allotment_id={{ allotment.id }}"
             class="nm-btn {% if selected_allotment and selected_allotment.id == allotment.id %}active{% endif %}"
             style="padding: 12px 24px; font-size: 0.85rem; {% if selected_allotment and selected_allotment.id == allotment.id %}box-shadow: var(--nm-in); color: var(--accent-color);{% endif %}">
-            {{ allotment.subject }} &bull; {{ allotment.class_name }}
+            {{ allotment.subject }} – {{ allotment.class_name }}{% if allotment.course %} ({{ allotment.course }}{% if allotment.semester is not none %} Sem {{ allotment.semester }}{% endif %}){% endif %}
         </a>
         {% endfor %}
     </div>
@@ -35,10 +35,10 @@
             <input type="date" name="date" class="nm-input" value="{{ today }}" required>
         </div>
         <div class="nm-inset" style="padding: 30px; text-align: center;">
-            <div style="font-weight: 900; color: var(--accent-color); font-size: 1.2rem;">{{ selected_allotment.subject
-                }}</div>
-            <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 700;">Class: {{
-                selected_allotment.class_name }}</div>
+            <div style="font-weight: 900; color: var(--accent-color); font-size: 1.2rem;">{{ selected_allotment.subject }}</div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 700;">
+                Class: {{ selected_allotment.class_name }}{% if selected_allotment.course %} &bull; {{ selected_allotment.course }}{% endif %}{% if selected_allotment.semester is not none %} &bull; Sem {{ selected_allotment.semester }}{% endif %}
+            </div>
         </div>
     </div>
 
@@ -52,6 +52,13 @@
                 </tr>
             </thead>
             <tbody>
+                {% if not students and selected_allotment %}
+                <tr>
+                    <td colspan="3" style="padding: 40px; text-align: center; color: var(--text-secondary); font-weight: 700;">
+                        No students in this batch. Ask the HOD to set <strong>Course</strong> and <strong>Semester</strong> for this assignment to match registered students (Dept: {{ selected_allotment.department }}, Class: {{ selected_allotment.class_name }}{% if selected_allotment.course %}, Course: {{ selected_allotment.course }}, Sem: {{ selected_allotment.semester }}{% else %} — course/semester not set{% endif %}).
+                    </td>
+                </tr>
+                {% endif %}
                 {% for student in students %}
                 <tr>
                     <td style="padding-left: 30px; font-weight: 800;">{{ student.user.username }}</td>

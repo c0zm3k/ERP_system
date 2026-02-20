@@ -62,16 +62,24 @@
         </form>
     </div>
 
-    <!-- Active Potfolio -->
+    <!-- Leave Balance -->
     <div class="nm-inset" style="padding: 50px;">
         <h2 style="font-weight: 900; margin-bottom: 30px; letter-spacing: -1px;">Leave Balance</h2>
         <div style="display: flex; gap: 20px; flex-direction: column;">
             <div class="nm-card"
+                style="padding: 25px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--accent-color);">
+                <div>
+                    <label
+                        style="font-weight: 800; color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase;">Remaining Balance</label>
+                    <div style="font-size: 1.8rem; font-weight: 900; color: var(--accent-color);">{{ left }} Days</div>
+                </div>
+                <div style="color: var(--accent-color); opacity: 0.6;">📋</div>
+            </div>
+            <div class="nm-card"
                 style="padding: 25px; display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <label
-                        style="font-weight: 800; color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase;">
-                        Total Leaves</label>
+                        style="font-weight: 800; color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase;">Total Leaves</label>
                     <div style="font-size: 1.8rem; font-weight: 900;">{{ current_user.total_leaves }} Days</div>
                 </div>
                 <div style="color: var(--accent-color); opacity: 0.5;">📅</div>
@@ -80,8 +88,7 @@
                 style="padding: 25px; display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <label
-                        style="font-weight: 800; color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase;">
-                        Leaves Taken</label>
+                        style="font-weight: 800; color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase;">Leaves Taken</label>
                     <div style="font-size: 1.8rem; font-weight: 900;">{{ current_user.leaves_taken }} Days</div>
                 </div>
                 <div style="color: #ff4757; opacity: 0.5;">📉</div>

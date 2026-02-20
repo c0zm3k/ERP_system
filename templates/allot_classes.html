@@ -4,11 +4,47 @@
 
 {% block content %}
 <div class="nm-card" style="max-width: 1200px; margin: 40px auto; padding: 40px; min-height: 80vh;">
-    <div style="margin-bottom: 50px;">
-        <h1 class="hero-text" style="margin-bottom: 10px;">Allot Classes</h1>
-        <p style="color: var(--text-secondary); font-weight: 700;">Assign faculty members to their classes and subjects.
-        </p>
+    <div style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h1 class="hero-text" style="margin-bottom: 10px;">Allot Classes</h1>
+            <p style="color: var(--text-secondary); font-weight: 700;">Assign faculty to classes and subjects. Use time slots to avoid conflicts.</p>
+        </div>
+        <a href="/hod/slots" class="nm-btn" style="padding: 14px 24px;">Manage Time Slots</a>
     </div>
+
+    {% if incoming_requests %}
+    <div class="nm-inset" style="margin-bottom: 40px; padding: 30px; border-radius: var(--radius-xl); border-left: 4px solid var(--accent-color);">
+        <h3 style="font-weight: 900; margin-bottom: 20px;">Cross-department requests (approve or reject)</h3>
+        <p style="color: var(--text-secondary); font-weight: 600; margin-bottom: 20px;">Another HOD requested to assign a faculty from your department to a class.</p>
+        <table style="width: 100%; margin-bottom: 15px;">
+            <thead>
+                <tr style="text-align: left;">
+                    <th>Faculty</th>
+                    <th>Subject</th>
+                    <th>Class</th>
+                    <th>Dept</th>
+                    <th>Requested by</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in incoming_requests %}
+                <tr>
+                    <td style="font-weight: 800;">{{ req.faculty.user.username }}</td>
+                    <td>{{ req.subject }}</td>
+                    <td>{{ req.class_name }}</td>
+                    <td>{{ req.department }}</td>
+                    <td>{{ req.requesting_hod.user.username }} ({{ req.requesting_hod.department }})</td>
+                    <td style="text-align: right;">
+                        <a href="/hod/requests/approve/{{ req.id }}" class="nm-btn" style="padding: 8px 14px; font-size: 0.75rem; color: #2ecc71;">Approve</a>
+                        <a href="/hod/requests/reject/{{ req.id }}" class="nm-btn" style="padding: 8px 14px; font-size: 0.75rem; color: #ff6b6b;" onclick="return confirm('Reject this request?')">Reject</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
 
     <div class="nm-inset" style="margin-bottom: 60px; padding: 50px; border-radius: var(--radius-xl);">
         <h2
@@ -20,7 +56,7 @@
             Assign Class
         </h2>
 
-        <form action="/admin/allot_class" method="POST">
+        <form action="/hod/allot_class" method="POST">
             <div class="grid-2" style="gap: 30px; margin-bottom: 30px;">
                 <div>
                     <label
@@ -40,23 +76,62 @@
                 </div>
             </div>
 
-            <div class="grid-3" style="margin-bottom: 40px; gap: 20px;">
+            <div class="grid-3" style="margin-bottom: 20px; gap: 20px;">
                 <div>
                     <label
                         style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Subject</label>
-                    <input type="text" name="subject" class="nm-input" placeholder="e.g. Computer Science" required>
+                    <input type="text" name="subject" class="nm-input" placeholder="e.g. Python" required>
                 </div>
                 <div>
                     <label
                         style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Department</label>
-                    <input type="text" name="department" class="nm-input" placeholder="e.g. IT Dept" required>
+                    <input type="text" name="department" class="nm-input" placeholder="e.g. Computer Science" required>
                 </div>
                 <div>
                     <label
-                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Class
-                        Name</label>
-                    <input type="text" name="class_name" class="nm-input" placeholder="e.g. Final Year B.E" required>
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Class / Section</label>
+                    <select name="class_name" class="nm-input" required>
+                        <option value="">Select class</option>
+                        {% for c in classes %}
+                        <option value="{{ c }}">{{ c }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
+            </div>
+            <div class="grid-2" style="margin-bottom: 25px; gap: 20px;">
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Course</label>
+                    <select name="course" class="nm-input">
+                        <option value="">Select course (optional)</option>
+                        {% for c in courses %}
+                        <option value="{{ c }}">{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                    <p style="margin-top: 6px; font-size: 0.7rem; opacity: 0.8;">Match students' course so the correct class list appears for faculty.</p>
+                </div>
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Semester</label>
+                    <select name="semester" class="nm-input">
+                        <option value="">Select semester (optional)</option>
+                        {% for s in semesters %}
+                        <option value="{{ s }}">Semester {{ s }}</option>
+                        {% endfor %}
+                    </select>
+                    <p style="margin-top: 6px; font-size: 0.7rem; opacity: 0.8;">Match students' semester for correct roll list.</p>
+                </div>
+            </div>
+            <div style="margin-bottom: 30px;">
+                <label
+                    style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Time slot (optional)</label>
+                <select name="slot_id" class="nm-input">
+                    <option value="">No slot</option>
+                    {% for slot in slots %}
+                    <option value="{{ slot.id }}">{{ slot.name }} – {{ slot.day_of_week }} {{ slot.start_time }}-{{ slot.end_time }}</option>
+                    {% endfor %}
+                </select>
+                <p style="margin-top: 6px; font-size: 0.75rem; opacity: 0.8;">Assign a slot to avoid overlapping classes. <a href="/hod/slots">Create slots</a> first if needed.</p>
             </div>
 
             <button type="submit" class="nm-btn"
@@ -77,7 +152,10 @@
                     <th>Username</th>
                     <th>Department</th>
                     <th>Subject</th>
+                    <th>Course</th>
+                    <th>Sem</th>
                     <th>Class</th>
+                    <th>Time slot</th>
                     <th style="text-align: right;">Actions</th>
                 </tr>
             </thead>
@@ -88,7 +166,10 @@
                     <td style="opacity: 0.7; font-weight: 700;">{{ allotment.faculty.user.username }}</td>
                     <td style="opacity: 0.7; font-weight: 700;">{{ allotment.department }}</td>
                     <td style="color: var(--accent-color); font-weight: 800;">{{ allotment.subject }}</td>
+                    <td style="font-size: 0.85rem;">{{ allotment.course or '—' }}</td>
+                    <td>{{ allotment.semester or '—' }}</td>
                     <td><span class="nm-badge">{{ allotment.class_name }}</span></td>
+                    <td style="font-size: 0.85rem;">{% if allotment.slot %}{{ allotment.slot.name }} ({{ allotment.slot.day_of_week }} {{ allotment.slot.start_time }}-{{ allotment.slot.end_time }}){% else %}—{% endif %}</td>
                     <td style="text-align: right;">
                         <a href="/hod/allot_class/delete/{{ allotment.id }}" class="nm-badge"
                             style="color: #ff4757; text-decoration: none; font-weight: 800;"
