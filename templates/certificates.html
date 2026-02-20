@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Certificates - Lumen ERP{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 50px;">
+    <h1 class="hero-text" style="margin-bottom: 10px;">Certificates</h1>
+    <p style="color: var(--text-secondary); font-weight: 700;">View and download your official certificates</p>
+</div>
+
+{% if current_user.role == 'Admin' %}
+<div class="nm-card" style="margin-bottom: 60px; padding: 40px;">
+    <h2
+        style="font-weight: 900; margin-bottom: 30px; letter-spacing: -1px; display: flex; align-items: center; gap: 15px; font-size: 1.2rem;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="3">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            <line x1="12" y1="11" x2="12" y2="17"></line>
+            <line x1="9" y1="14" x2="15" y2="14"></line>
+        </svg>
+        Upload Certificate
+    </h2>
+    <form action="/admin/certificates/upload" method="POST" enctype="multipart/form-data">
+        <div class="grid-3" style="gap: 20px; align-items: flex-end;">
+            <div>
+                <label
+                    style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Select
+                    Student</label>
+                <select name="student_id" class="nm-input" required>
+                    {% for student in students %}
+                    <option value="{{ student.id }}">{{ student.user.username }} ({{ student.enrollment_no }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label
+                    style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Certificate
+                    Name</label>
+                <input type="text" name="title" class="nm-input" placeholder="e.g. Merit Certification" required>
+            </div>
+            <div>
+                <label
+                    style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Select
+                    File</label>
+                <input type="file" name="file" class="nm-input" style="padding: 12px;" required>
+            </div>
+        </div>
+        <div style="margin-top: 30px;">
+            <button type="submit" class="nm-btn"
+                style="padding: 18px 50px; background: var(--text-primary); color: white;">Upload Certificate</button>
+        </div>
+    </form>
+</div>
+{% endif %}
+
+<div class="grid-3">
+    {% for cert in certificates %}
+    <div class="nm-card" style="text-align: center; padding: 40px 30px;">
+        <div style="color: var(--accent-color); margin-bottom: 20px;">
+            <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 15l-2 5L9 9l11 4-5 2zm0 0l4 4"></path>
+            </svg>
+        </div>
+        <h3 style="font-weight: 900; margin-bottom: 10px; font-size: 1.1rem; letter-spacing: -0.5px;">{{ cert.title }}
+        </h3>
+        <p
+            style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 800; text-transform: uppercase; margin-bottom: 25px;">
+            {{ cert.category or 'OFFICIAL' }}</p>
+
+        <div class="nm-inset"
+            style="padding: 15px; margin-bottom: 30px; font-size: 0.8rem; font-weight: 700; opacity: 0.7;">
+            Semester {{ cert.student.semester }} &bull; {{ cert.student.user.username }}
+        </div>
+
+        <a href="/download/certificates/{{ cert.file_path }}" class="nm-btn"
+            style="width: 100%; font-size: 0.8rem; background: rgba(109, 93, 252, 0.05); color: var(--accent-color); box-shadow: var(--nm-btn-hover);">
+            Download File
+        </a>
+    </div>
+    {% else %}
+    <div class="nm-inset" style="grid-column: 1 / -1; padding: 100px; text-align: center; opacity: 0.5;">
+        <h3 style="font-weight: 900;">No Certificates Found</h3>
+        <p style="font-weight: 700;">You haven't uploaded or received any certificates yet.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

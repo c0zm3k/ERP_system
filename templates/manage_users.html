@@ -1,154 +1,161 @@
 {% extends "base.html" %}
 
-{% block title %}Manage Users - Lumen ERP{% endblock %}
+{% block title %}User Management - Lumen ERP{% endblock %}
 
 {% block content %}
-<div class="neumorph-card">
-    <h2 style="margin-bottom: 25px;">User Management</h2>
+<div style="margin-bottom: 50px;">
+    <h1 class="hero-text" style="margin-bottom: 10px;">User Management</h1>
+    <p style="color: var(--text-secondary); font-weight: 700;">Add and manage staff accounts.</p>
+</div>
 
-    <div class="neumorph-card" style="margin-bottom: 30px;">
-        <h3>Add New User</h3>
-        <form method="POST">
-            <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+<div class="nm-card" style="margin-bottom: 60px; padding: 50px;">
+    <h2
+        style="font-weight: 900; margin-bottom: 30px; letter-spacing: -1px; display: flex; align-items: center; gap: 15px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="3">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="8.5" cy="7" r="4"></circle>
+            <line x1="20" y1="8" x2="20" y2="14"></line>
+            <line x1="23" y1="11" x2="17" y2="11"></line>
+        </svg>
+        Add New User
+    </h2>
+
+    <form action="/admin/users" method="POST">
+        <div class="grid-3" style="gap: 20px; margin-bottom: 20px;">
+            <div>
+                <label
+                    style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">Username</label>
+                <input type="text" name="username" class="nm-input" placeholder="e.g. john_doe" required>
+            </div>
+            <div>
+                <label
+                    style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">Password</label>
+                <input type="password" name="password" class="nm-input" required>
+            </div>
+            <div>
+                <label
+                    style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">Select
+                    Role</label>
+                <select name="role" class="nm-input" id="role-select" required>
+                    <option value="HOD">Department HOD</option>
+                    <option value="Faculty">Faculty Teacher</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Dynamic Fields -->
+        <div id="hod-fields" style="display: none; margin-bottom: 20px;">
+            <div class="grid-2">
                 <div>
-                    <label style="display: block; margin-bottom: 8px;">Username</label>
-                    <input type="text" name="username" class="neumorph-inset" required>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">Department</label>
+                    <input type="text" name="hod_department" class="nm-input" placeholder="e.g. Engineering">
                 </div>
                 <div>
-                    <label style="display: block; margin-bottom: 8px;">Password</label>
-                    <input type="password" name="password" class="neumorph-inset" required>
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 8px;">Role</label>
-                    <select name="role" id="role_select" class="neumorph-inset" required onchange="toggleFields()">
-                        <option value="Faculty">Faculty</option>
-                        <option value="Student">Student</option>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">Position</label>
+                    <select name="hod_rank" class="nm-input">
+                        <option value="HOD">HOD</option>
+                        <option value="Asst_HOD">Assistant HOD</option>
                     </select>
                 </div>
             </div>
+        </div>
 
-            <!-- Faculty Fields -->
-            <div id="faculty_fields" style="display: block;">
-                <div
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
-                    <div>
-                        <label style="display: block; margin-bottom: 8px;">Department</label>
-                        <input type="text" name="faculty_department" class="neumorph-inset" list="dept_list">
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 8px;">Designation</label>
-                        <input type="text" name="designation" class="neumorph-inset">
-                    </div>
+        <div id="faculty-fields" style="display: none; margin-bottom: 20px;">
+            <div class="grid-3">
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">Department</label>
+                    <input type="text" name="faculty_department" class="nm-input">
+                </div>
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">Designation</label>
+                    <input type="text" name="designation" class="nm-input" placeholder="e.g. Professor">
+                </div>
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">Manager</label>
+                    <select name="hod_id" class="nm-input">
+                        {% for hod in hods %}
+                        <option value="{{ hod.id }}">{{ hod.user.username }} ({{ hod.department }})</option>
+                        {% endfor %}
+                    </select>
                 </div>
             </div>
+        </div>
 
-            <!-- Student Fields -->
-            <div id="student_fields" style="display: none;">
-                <div
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 20px;">
-                    <div>
-                        <label style="display: block; margin-bottom: 8px;">Enrollment No</label>
-                        <input type="text" name="enrollment_no" class="neumorph-inset">
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 8px;">Course</label>
-                        <input type="text" name="course" class="neumorph-inset" list="course_list">
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 8px;">Department</label>
-                        <input type="text" name="student_department" class="neumorph-inset" placeholder="e.g. CSE"
-                            list="dept_list">
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 8px;">Semester</label>
-                        <input type="number" name="semester" class="neumorph-inset">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Datalists for dynamic dropdowns -->
-            <datalist id="dept_list">
-                {% for dept in departments %}
-                <option value="{{ dept }}">
-                    {% endfor %}
-            </datalist>
-            <datalist id="course_list">
-                {% for course in courses %}
-                <option value="{{ course }}">
-                    {% endfor %}
-            </datalist>
-
-            <button type="submit" class="neumorph-btn">Create User</button>
-        </form>
-    </div>
-
-    <h3 style="margin-left: 20px; margin-bottom: 15px;">Faculty List</h3>
-    <div class="table-container" style="margin-bottom: 40px;">
-        <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
-            <thead>
-                <tr style="border-bottom: 1px solid var(--shadow-dark);">
-                    <th style="padding: 15px; text-align: left;">Username</th>
-                    <th style="padding: 15px; text-align: left;">Department</th>
-                    <th style="padding: 15px; text-align: left;">Designation</th>
-                    <th style="padding: 15px; text-align: center;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in faculty %}
-                <tr style="border-bottom: 1px solid var(--shadow-dark);">
-                    <td style="padding: 15px;">{{ user.username }}</td>
-                    <td style="padding: 15px;">{{ user.faculty_profile.department }}</td>
-                    <td style="padding: 15px;">{{ user.faculty_profile.designation }}</td>
-                    <td style="padding: 15px; text-align: center;">
-                        <a href="{{ url_for('edit_user', id=user.id) }}" class="neumorph-btn"
-                            style="padding: 5px 10px; font-size: 0.8rem; color: var(--teal-cyan);">Edit</a>
-                        <a href="{{ url_for('delete_user', id=user.id) }}" class="neumorph-btn"
-                            style="padding: 5px 10px; font-size: 0.8rem; color: var(--highlight-red);"
-                            onclick="return confirm('Are you sure?')">Delete</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <h3 style="margin-left: 20px; margin-bottom: 15px;">Student List</h3>
-    <div class="table-container">
-        <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
-            <thead>
-                <tr style="border-bottom: 1px solid var(--shadow-dark);">
-                    <th style="padding: 15px; text-align: left;">Username</th>
-                    <th style="padding: 15px; text-align: left;">Dept</th>
-                    <th style="padding: 15px; text-align: left;">Enrollment</th>
-                    <th style="padding: 15px; text-align: center;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in students %}
-                <tr style="border-bottom: 1px solid var(--shadow-dark);">
-                    <td style="padding: 15px;">{{ user.username }}</td>
-                    <td style="padding: 15px;">{{ user.student_profile.department }}</td>
-                    <td style="padding: 15px;">{{ user.student_profile.enrollment_no }}</td>
-                    <td style="padding: 15px; text-align: center;">
-                        <a href="{{ url_for('edit_user', id=user.id) }}" class="neumorph-btn"
-                            style="padding: 5px 10px; font-size: 0.8rem; color: var(--teal-cyan);">Edit</a>
-                        <a href="{{ url_for('delete_user', id=user.id) }}" class="neumorph-btn"
-                            style="padding: 5px 10px; font-size: 0.8rem; color: var(--highlight-red);"
-                            onclick="return confirm('Are you sure?')">Delete</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+        <button type="submit" class="nm-btn primary" style="width: 100%; padding: 20px;">Create Account</button>
+    </form>
 </div>
 
 <script>
-    function toggleFields() {
-        const role = document.getElementById('role_select').value;
-        document.getElementById('faculty_fields').style.display = (role === 'Faculty') ? 'block' : 'none';
-        document.getElementById('student_fields').style.display = (role === 'Student') ? 'block' : 'none';
+    const roleSelect = document.getElementById('role-select');
+    const hodFields = document.getElementById('hod-fields');
+    const facultyFields = document.getElementById('faculty-fields');
+
+    function updateVisibility() {
+        hodFields.style.display = roleSelect.value === 'HOD' ? 'block' : 'none';
+        facultyFields.style.display = roleSelect.value === 'Faculty' ? 'block' : 'none';
     }
+
+    roleSelect.addEventListener('change', updateVisibility);
+    // Initialize visibility on load
+    updateVisibility();
 </script>
+</div>
+
+<div class="nm-table-container">
+    <div style="padding: 20px 10px 40px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-weight: 900; letter-spacing: -1px;">User List</h2>
+        <span class="nm-badge" style="background: var(--accent-color); color: white;">All Users</span>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Department</th>
+                <th>Manager</th>
+                <th style="text-align: right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for h in hods %}
+            <tr>
+                <td style="font-weight: 900; font-size: 1.1rem; color: var(--accent-color);">{{ h.user.username }}</td>
+                <td><span class="nm-badge" style="font-size: 0.65rem; background: var(--text-primary); color: white;">{{
+                        h.rank }}</span></td>
+                <td style="opacity: 0.7; font-weight: 800;">{{ h.department }}</td>
+                <td style="opacity: 0.5; font-weight: 600;">System Administrator</td>
+                <td style="text-align: right;">
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <a href="/admin/user/edit/{{ h.user.id }}" class="nm-btn"
+                            style="padding: 8px 16px; font-size: 0.7rem;">Edit</a>
+                        <a href="/admin/user/delete/{{ h.user.id }}" class="nm-btn"
+                            style="padding: 8px 16px; font-size: 0.7rem; color: #ff6b6b;"
+                            onclick="return confirm('Delete HOD Account?')">Delete</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            {% for f in faculty %}
+            <tr>
+                <td style="font-weight: 800; font-size: 1.1rem;">{{ f.user.username }}</td>
+                <td><span class="nm-badge" style="font-size: 0.65rem;">Faculty</span></td>
+                <td style="opacity: 0.7; font-weight: 700;">{{ f.department }}</td>
+                <td style="opacity: 0.7; font-weight: 700;">{{ f.hod.user.username if f.hod else 'Unassigned' }}</td>
+                <td style="text-align: right;">
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <a href="/admin/user/edit/{{ f.user.id }}" class="nm-btn"
+                            style="padding: 8px 16px; font-size: 0.7rem;">Edit</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

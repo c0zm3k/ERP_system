@@ -1,82 +1,98 @@
 {% extends "base.html" %}
 
-{% block title %}Class Allotment - Lumen ERP{% endblock %}
+{% block title %}Allot Classes - Lumen ERP{% endblock %}
 
 {% block content %}
-<div class="neumorph-card">
-    <h2 style="margin-bottom: 25px;">Class Allotment</h2>
+<div class="nm-card" style="max-width: 1200px; margin: 40px auto; padding: 40px; min-height: 80vh;">
+    <div style="margin-bottom: 50px;">
+        <h1 class="hero-text" style="margin-bottom: 10px;">Allot Classes</h1>
+        <p style="color: var(--text-secondary); font-weight: 700;">Assign faculty members to their classes and subjects.
+        </p>
+    </div>
 
-    <div class="neumorph-card" style="margin-bottom: 30px;">
-        <h3>Allot New Class</h3>
-        <form method="POST">
-            <div
-                style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+    <div class="nm-inset" style="margin-bottom: 60px; padding: 50px; border-radius: var(--radius-xl);">
+        <h2
+            style="font-weight: 900; margin-bottom: 30px; letter-spacing: -1px; display: flex; align-items: center; gap: 15px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="3">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            Assign Class
+        </h2>
+
+        <form action="/admin/allot_class" method="POST">
+            <div class="grid-2" style="gap: 30px; margin-bottom: 30px;">
                 <div>
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Faculty</label>
-                    <select name="faculty_id" class="neumorph-inset" required>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Select
+                        Faculty ID</label>
+                    <select name="faculty_id" class="nm-input" required>
                         {% for f in faculties %}
-                        <option value="{{ f.id }}">{{ f.user.username }} ({{ f.department }})</option>
+                        <option value="{{ f.id }}">{{ f.user.username }} ({{ f.designation }})</option>
                         {% endfor %}
                     </select>
                 </div>
                 <div>
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Department</label>
-                    <input type="text" name="department" list="dept_list" placeholder="Select or type..."
-                        class="neumorph-inset" required>
-                    <datalist id="dept_list">
-                        {% for d in departments %}
-                        <option value="{{ d }}">
-                            {% endfor %}
-                    </datalist>
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Class</label>
-                    <input type="text" name="class_name" list="class_list" placeholder="Select or type..."
-                        class="neumorph-inset" required>
-                    <datalist id="class_list">
-                        {% for c in classes %}
-                        <option value="{{ c }}">
-                            {% endfor %}
-                    </datalist>
-                </div>
-                <div>
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Subject</label>
-                    <input type="text" name="subject" list="subject_list" placeholder="Select or type..."
-                        class="neumorph-inset" required>
-                    <datalist id="subject_list">
-                        {% for s in subjects %}
-                        <option value="{{ s }}">
-                            {% endfor %}
-                    </datalist>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Faculty
+                        Name</label>
+                    <input type="text" name="faculty_name" class="nm-input" placeholder="e.g. Dr. John Doe" required>
                 </div>
             </div>
-            <button type="submit" class="neumorph-btn" style="color: var(--teal-cyan);">Assign Class</button>
+
+            <div class="grid-3" style="margin-bottom: 40px; gap: 20px;">
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Subject</label>
+                    <input type="text" name="subject" class="nm-input" placeholder="e.g. Computer Science" required>
+                </div>
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Department</label>
+                    <input type="text" name="department" class="nm-input" placeholder="e.g. IT Dept" required>
+                </div>
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Class
+                        Name</label>
+                    <input type="text" name="class_name" class="nm-input" placeholder="e.g. Final Year B.E" required>
+                </div>
+            </div>
+
+            <button type="submit" class="nm-btn"
+                style="width: 100%; padding: 20px; background: var(--surface-color); box-shadow: var(--nm-btn-hover);">Assign
+                Faculty</button>
         </form>
     </div>
 
-    <h3 style="margin-left: 20px; margin-bottom: 15px;">Existing Allotments</h3>
-    <div class="table-container">
-        <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+    <div class="nm-table-container">
+        <div style="padding: 20px 10px 40px;">
+            <h2 style="font-weight: 900; letter-spacing: -1px;">Active Allotments</h2>
+        </div>
+
+        <table>
             <thead>
-                <tr style="border-bottom: 1px solid var(--shadow-dark);">
-                    <th style="padding: 15px; text-align: left;">Faculty</th>
-                    <th style="padding: 15px; text-align: left;">Department</th>
-                    <th style="padding: 15px; text-align: left;">Class</th>
-                    <th style="padding: 15px; text-align: left;">Subject</th>
-                    <th style="padding: 15px; text-align: center;">Actions</th>
+                <tr>
+                    <th>Faculty Name</th>
+                    <th>Username</th>
+                    <th>Department</th>
+                    <th>Subject</th>
+                    <th>Class</th>
+                    <th style="text-align: right;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for allotment in allotments %}
-                <tr style="border-bottom: 1px solid var(--shadow-dark);">
-                    <td style="padding: 15px;">{{ allotment.faculty.user.username }}</td>
-                    <td style="padding: 15px;">{{ allotment.department }}</td>
-                    <td style="padding: 15px;">{{ allotment.class_name }}</td>
-                    <td style="padding: 15px;">{{ allotment.subject }}</td>
-                    <td style="padding: 15px; text-align: center;">
-                        <a href="{{ url_for('delete_allotment', id=allotment.id) }}" class="neumorph-btn"
-                            style="padding: 5px 10px; font-size: 0.8rem; color: var(--highlight-red);"
-                            onclick="return confirm('Remove this allotment?')">Remove</a>
+                <tr>
+                    <td style="font-weight: 800; color: var(--text-primary);">{{ allotment.faculty_name or 'N/A' }}</td>
+                    <td style="opacity: 0.7; font-weight: 700;">{{ allotment.faculty.user.username }}</td>
+                    <td style="opacity: 0.7; font-weight: 700;">{{ allotment.department }}</td>
+                    <td style="color: var(--accent-color); font-weight: 800;">{{ allotment.subject }}</td>
+                    <td><span class="nm-badge">{{ allotment.class_name }}</span></td>
+                    <td style="text-align: right;">
+                        <a href="/hod/allot_class/delete/{{ allotment.id }}" class="nm-badge"
+                            style="color: #ff4757; text-decoration: none; font-weight: 800;"
+                            onclick="return confirm('Remove this faculty assignment?')">Remove</a>
                     </td>
                 </tr>
                 {% endfor %}

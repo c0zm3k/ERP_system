@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Leave Portal - Lumen ERP{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 50px;">
+    <h1 class="hero-text" style="margin-bottom: 10px;">Leave Management</h1>
+    <p style="color: var(--text-secondary); font-weight: 700;">Apply for leaves and track your status</p>
+</div>
+
+<div class="grid-2" style="margin-bottom: 60px;">
+    <!-- Application Form -->
+    <div class="nm-card" style="padding: 50px;">
+        <h2
+            style="font-weight: 900; margin-bottom: 30px; letter-spacing: -1px; display: flex; align-items: center; gap: 15px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="3">
+                <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+                <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+                <path d="M2 2l7.5 1.5"></path>
+                <path d="M7 11l5-5"></path>
+            </svg>
+            Apply for Leave
+        </h2>
+
+        <form action="/leaves" method="POST">
+            <div style="margin-bottom: 25px;">
+                <label
+                    style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">Leave
+                    Type</label>
+                <select name="type" class="nm-input" required>
+                    <option value="Casual">Casual Leave</option>
+                    <option value="Medical">Medical / Emergency</option>
+                    <option value="Duty">On Duty / Seminar</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <label
+                    style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">Reason
+                    for Leave</label>
+                <textarea name="reason" class="nm-input" style="height: 100px; resize: none;"
+                    placeholder="Why are you taking leave?" required></textarea>
+            </div>
+
+            <div class="grid-2" style="margin-bottom: 40px; gap: 20px;">
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">Start
+                        Date</label>
+                    <input type="date" name="start_date" class="nm-input" required>
+                </div>
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase;">End
+                        Date</label>
+                    <input type="date" name="end_date" class="nm-input" required>
+                </div>
+            </div>
+
+            <button type="submit" class="nm-btn primary" style="width: 100%; padding: 20px;">Submit Request</button>
+        </form>
+    </div>
+
+    <!-- Active Potfolio -->
+    <div class="nm-inset" style="padding: 50px;">
+        <h2 style="font-weight: 900; margin-bottom: 30px; letter-spacing: -1px;">Leave Balance</h2>
+        <div style="display: flex; gap: 20px; flex-direction: column;">
+            <div class="nm-card"
+                style="padding: 25px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <label
+                        style="font-weight: 800; color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase;">
+                        Total Leaves</label>
+                    <div style="font-size: 1.8rem; font-weight: 900;">{{ current_user.total_leaves }} Days</div>
+                </div>
+                <div style="color: var(--accent-color); opacity: 0.5;">📅</div>
+            </div>
+            <div class="nm-card"
+                style="padding: 25px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <label
+                        style="font-weight: 800; color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase;">
+                        Leaves Taken</label>
+                    <div style="font-size: 1.8rem; font-weight: 900;">{{ current_user.leaves_taken }} Days</div>
+                </div>
+                <div style="color: #ff4757; opacity: 0.5;">📉</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="nm-table-container">
+    <div style="padding: 20px 10px 40px;">
+        <h2 style="font-weight: 900; letter-spacing: -1px;">Leave History</h2>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="padding-left: 30px;">Name</th>
+                <th>Dates</th>
+                <th>Reason</th>
+                <th>Status</th>
+                {% if current_user.role in ['Admin', 'HOD', 'Faculty'] %}
+                <th style="text-align: right; padding-right: 30px;">Actions</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for leave in leaves %}
+            <tr>
+                <td style="padding-left: 30px; font-weight: 800;">{{ leave.user.username }}<br><span
+                        style="font-size: 0.6rem; opacity: 0.5;">{{ leave.user.role }}</span></td>
+                <td style="font-weight: 700; font-size: 0.85rem;">{{ leave.start_date }} &rarr; {{ leave.end_date
+                    }}<br><span style="font-weight: 800; color: var(--accent-color); font-size: 0.65rem;">{{ leave.type
+                        | upper }}</span></td>
+                <td style="max-width: 300px; font-weight: 600; font-size: 0.9rem;">{{ leave.reason }}</td>
+                <td>
+                    <span class="nm-badge"
+                        style="background: rgba(109,93,252,0.1); color: var(--accent-color); box-shadow: none; border: 1px solid currentColor;">
+                        {{ leave.status | replace('_', ' ') | upper }}
+                    </span>
+                </td>
+                {% if current_user.role in ['Admin', 'HOD', 'Faculty'] %}
+                <td style="text-align: right; padding-right: 30px;">
+                    {% if (current_user.role == 'Faculty' and leave.status == 'Pending_Faculty') or
+                    (current_user.role == 'HOD' and leave.status == 'Pending_HOD') or
+                    (current_user.role == 'Admin' and leave.status == 'Pending_Admin') or
+                    (current_user.role == 'HOD' and current_user.hod_profile.rank == 'Asst_HOD' and leave.status ==
+                    'Pending_Admin') %}
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <a href="/leaves/approve/{{ leave.id }}" class="nm-btn"
+                            style="padding: 8px 16px; font-size: 0.7rem; color: #2ecc71;">Approve</a>
+                        <a href="/leaves/reject/{{ leave.id }}" class="nm-btn"
+                            style="padding: 8px 16px; font-size: 0.7rem; color: #ff6b6b;">Reject</a>
+                    </div>
+                    {% else %}
+                    <span style="opacity: 0.3; font-weight: 800; font-size: 0.7rem;">{% if leave.status == 'Approved'
+                        %}FINALIZED{% elif leave.status == 'Rejected' %}REJECTED{% else %}IN QUEUE{% endif %}</span>
+                    {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5"
+                    style="padding: 60px; text-align: center; color: var(--text-secondary); font-weight: 700; opacity: 0.5;">
+                    Registry record empty.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

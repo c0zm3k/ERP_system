@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}HOD Console - Lumen ERP{% endblock %}
+
+{% block content %}
+<div class="nm-card" style="max-width: 1200px; margin: 40px auto; padding: 40px; min-height: 80vh;">
+    <div style="margin-bottom: 60px;">
+        <h1 class="hero-text" style="margin-bottom: 10px;">HOD Panel</h1>
+        <p style="color: var(--text-secondary); font-weight: 700; font-size: 1.1rem;">Manage your department's students
+            and faculty</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid-3" style="margin-bottom: 60px;">
+        <div class="nm-card"
+            style="text-align: center; border-bottom: 5px solid var(--accent-color); border-radius: var(--radius-lg);">
+            <h4
+                style="color: var(--text-secondary); font-weight: 800; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 15px;">
+                Faculty Members</h4>
+            <div style="font-size: 2.5rem; font-weight: 900;">{{ stats.total_faculty }}</div>
+            <p style="font-size: 0.8rem; font-weight: 700; opacity: 0.6;">Staff Members</p>
+        </div>
+        <div class="nm-card"
+            style="text-align: center; border-bottom: 5px solid #2ecc71; border-radius: var(--radius-lg);">
+            <h4
+                style="color: var(--text-secondary); font-weight: 800; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 15px;">
+                Total Students</h4>
+            <div style="font-size: 2.5rem; font-weight: 900;">{{ stats.total_students }}</div>
+            <p style="font-size: 0.8rem; font-weight: 700; opacity: 0.6;">Students enrolled</p>
+        </div>
+        <div class="nm-card"
+            style="text-align: center; border-bottom: 5px solid #ff4757; border-radius: var(--radius-lg);">
+            <h4
+                style="color: var(--text-secondary); font-weight: 800; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 15px;">
+                Leave Requests</h4>
+            <div style="font-size: 2.5rem; font-weight: 900;">{{ stats.pending_leaves }}</div>
+            <p style="font-size: 0.8rem; font-weight: 700; opacity: 0.6;">Waiting for approval</p>
+        </div>
+    </div>
+
+    <!-- Registration Form -->
+    <div class="nm-card" style="padding: 50px; margin-bottom: 60px; border-radius: var(--radius-xl);">
+        <h2
+            style="font-weight: 900; margin-bottom: 40px; letter-spacing: -1px; display: flex; align-items: center; gap: 20px;">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="3">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="8.5" cy="7" r="4"></circle>
+                <line x1="20" y1="8" x2="20" y2="14"></line>
+                <line x1="23" y1="11" x2="17" y2="11"></line>
+            </svg>
+            Add New Student
+        </h2>
+        <form action="/hod" method="POST">
+            <div class="grid-3" style="gap: 20px; margin-bottom: 30px;">
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Username</label>
+                    <input type="text" name="username" class="nm-input" placeholder="e.g. stu_001" required>
+                </div>
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Password</label>
+                    <input type="password" name="password" class="nm-input" required>
+                </div>
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Enrollment
+                        No.</label>
+                    <input type="text" name="enrollment_no" class="nm-input" required>
+                </div>
+            </div>
+            <div class="grid-2" style="gap: 20px; margin-bottom: 30px;">
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Course</label>
+                    <input type="text" name="course" class="nm-input" placeholder="e.g. B.Tech CS" required>
+                </div>
+                <div>
+                    <label
+                        style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Semester</label>
+                    <input type="number" name="semester" class="nm-input" required>
+                </div>
+            </div>
+            <button type="submit" class="nm-btn primary" style="width: 100%; padding: 20px;">Add Student</button>
+        </form>
+    </div>
+
+    <!-- Department Tools -->
+    <div class="nm-card" style="padding: 50px; border-radius: var(--radius-xl);">
+        <h2
+            style="font-weight: 900; margin-bottom: 40px; letter-spacing: -1px; display: flex; align-items: center; gap: 20px;">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="3">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+            </svg>
+            Department Tools
+        </h2>
+        <div class="grid-2" style="gap: 30px;">
+            <div class="nm-inset"
+                style="padding: 40px; text-align: left; border-radius: var(--radius-xl); grid-column: span 2;">
+                <h3 style="font-weight: 900; margin-bottom: 15px;">Leave Requests</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 30px; font-weight: 600;">Review and approve
+                    leaves for students and teachers.</p>
+                <a href="/hod/allot_class" class="nm-btn"
+                    style="width: 100%; background: var(--surface-color); box-shadow: var(--nm-btn-hover);">Check Leave
+                    List</a>
+            </div>
+
+            <div class="nm-inset"
+                style="padding: 40px; text-align: left; border-radius: var(--radius-xl); grid-column: span 2;">
+                <h3 style="font-weight: 900; margin-bottom: 15px;">Faculty Allotment</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 30px; font-weight: 600;">Assign faculty members
+                    to their classes and subjects.</p>
+                <a href="/hod/allot_class" class="nm-btn"
+                    style="width: 100%; background: var(--surface-color); box-shadow: var(--nm-btn-hover);">Assign
+                    Faculty</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

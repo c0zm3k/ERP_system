@@ -1,37 +1,70 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Panel - Lumen ERP{% endblock %}
+{% block title %}Admin Console - Lumen ERP{% endblock %}
 
 {% block content %}
-<div class="neumorph-card">
-    <h2 style="margin-bottom: 25px;">Admin Dashboard</h2>
+<div class="nm-card" style="max-width: 1200px; margin: 40px auto; padding: 40px; min-height: 80vh;">
+    <div style="margin-bottom: 60px;">
+        <h1 class="hero-text" style="margin-bottom: 10px;">Admin Settings</h1>
+        <p style="color: var(--text-secondary); font-weight: 700; font-size: 1.1rem;">Manage your team and platform data
+        </p>
+    </div>
 
-    <div
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px;">
-        <div class="neumorph-card" style="text-align: center;">
-            <h3>Total Users</h3>
-            <p style="font-size: 2.5rem; font-weight: 800; color: var(--accent-color);">{{ stats.total_users }}</p>
+    <!-- Stats Grid -->
+    <div class="grid-3" style="margin-bottom: 60px; gap: 30px;">
+        <div class="nm-card"
+            style="text-align: center; border-bottom: 5px solid var(--accent-color); border-radius: var(--radius-lg);">
+            <h4
+                style="color: var(--text-secondary); font-weight: 800; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 15px;">
+                Total Users</h4>
+            <div style="font-size: 2.5rem; font-weight: 900;">{{ stats.total_users }}</div>
+            <p style="font-size: 0.8rem; font-weight: 700; opacity: 0.6;">Registered Accounts</p>
         </div>
-        <div class="neumorph-card" style="text-align: center;">
-            <h3>Faculty</h3>
-            <p style="font-size: 2.5rem; font-weight: 800; color: #27ae60;">{{ stats.total_faculty }}</p>
+        <div class="nm-card"
+            style="text-align: center; border-bottom: 5px solid #2ecc71; border-radius: var(--radius-lg);">
+            <h4
+                style="color: var(--text-secondary); font-weight: 800; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 15px;">
+                Payments Collected</h4>
+            <div style="font-size: 2.5rem; font-weight: 900;">₹{{ stats.total_revenue }}</div>
+            <p style="font-size: 0.8rem; font-weight: 700; opacity: 0.6;">Total Collections</p>
         </div>
-        <div class="neumorph-card" style="text-align: center;">
-            <h3>Students</h3>
-            <p style="font-size: 2.5rem; font-weight: 800; color: #e67e22;">{{ stats.total_students }}</p>
+        <div class="nm-card"
+            style="text-align: center; border-bottom: 5px solid #ff4757; border-radius: var(--radius-lg);">
+            <h4
+                style="color: var(--text-secondary); font-weight: 800; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 15px;">
+                Leave Requests</h4>
+            <div style="font-size: 2.5rem; font-weight: 900;">{{ stats.pending_leaves }}</div>
+            <p style="font-size: 0.8rem; font-weight: 700; opacity: 0.6;">Waiting for Approval</p>
         </div>
     </div>
 
-    <div class="neumorph-card">
-        <h3>Quick Actions</h3>
-        <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
-            <a href="{{ url_for('manage_users') }}" class="neumorph-btn" style="text-decoration: none;">Manage Users</a>
-            <a href="{{ url_for('allot_class') }}" class="neumorph-btn" style="text-decoration: none;">Manage
-                Allotments</a>
-            <a href="{{ url_for('add_timetable') }}" class="neumorph-btn" style="text-decoration: none;">Add Timetable
-                Slot</a>
-            <a href="{{ url_for('view_timetable') }}" class="neumorph-btn" style="text-decoration: none;">View
-                Timetable</a>
+    <div class="nm-card" style="padding: 50px; border-radius: var(--radius-xl);">
+        <h2
+            style="font-weight: 900; margin-bottom: 40px; letter-spacing: -1px; display: flex; align-items: center; gap: 20px;">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="3">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+            </svg>
+            Management Tools
+        </h2>
+        <div class="grid-2" style="gap: 30px;">
+            <div class="nm-inset" style="padding: 40px; text-align: left; border-radius: var(--radius-xl);">
+                <h3 style="font-weight: 900; margin-bottom: 15px;">User Management</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 30px; font-weight: 600;">Create, edit, and delete
+                    user accounts.</p>
+                <a href="/admin/users" class="nm-btn"
+                    style="width: 100%; box-shadow: var(--nm-btn-hover); background: var(--surface-color);">Manage
+                    Users</a>
+            </div>
+
+
+            <div class="nm-inset" style="padding: 40px; text-align: left; border-radius: var(--radius-xl);">
+                <h3 style="font-weight: 900; margin-bottom: 15px;">Fees</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 30px; font-weight: 600;">Manage student fees and
+                    payments.</p>
+                <a href="/fees" class="nm-btn"
+                    style="width: 100%; box-shadow: var(--nm-btn-hover); background: var(--surface-color);">Manage
+                    Fees</a>
+            </div>
         </div>
     </div>
 </div>

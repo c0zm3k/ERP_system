@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Fees - Lumen ERP{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 50px;">
+    <h1 class="hero-text" style="margin-bottom: 10px;">Fee Management</h1>
+    <p style="color: var(--text-secondary); font-weight: 700;">Track student fees and manage payments</p>
+</div>
+
+{% if current_user.role == 'Admin' %}
+<div class="nm-card" style="margin-bottom: 60px; padding: 40px;">
+    <h2
+        style="font-weight: 900; margin-bottom: 25px; letter-spacing: -1px; display: flex; align-items: center; gap: 15px; font-size: 1.2rem;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="3">
+            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+            <path d="M7 15h0M2 9.5h20"></path>
+        </svg>
+        Add New Fee
+    </h2>
+    <form action="/admin/fees/add" method="POST">
+        <div class="grid-3" style="gap: 20px; align-items: flex-end;">
+            <div>
+                <label
+                    style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Select
+                    Student</label>
+                <select name="student_id" class="nm-input" required>
+                    {% for student in students %}
+                    <option value="{{ student.id }}">{{ student.user.username }} ({{ student.enrollment_no }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label
+                    style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Amount</label>
+                <input type="number" name="amount" class="nm-input" placeholder="0.00" required>
+            </div>
+            <button type="submit" class="nm-btn"
+                style="height: 55px; background: var(--text-primary); color: white;">Add Fee</button>
+        </div>
+        <div class="grid-2" style="margin-top: 20px; gap: 20px;">
+            <div>
+                <label
+                    style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Semester</label>
+                <input type="number" name="semester" class="nm-input" value="1" required>
+            </div>
+            <div>
+                <label
+                    style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Due
+                    Date</label>
+                <input type="date" name="due_date" class="nm-input" required>
+            </div>
+        </div>
+    </form>
+</div>
+{% endif %}
+
+<div class="nm-table-container">
+    <div style="padding: 20px 10px 40px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-weight: 900; letter-spacing: -1px;">Fee Records</h2>
+        <span class="nm-badge" style="background: var(--accent-color); color: white;">All Fees</span>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="padding-left: 30px;">Student</th>
+                <th>Semester</th>
+                <th>Fee Type</th>
+                <th>Amount</th>
+                <th style="text-align: right; padding-right: 30px;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fee in fees %}
+            <tr>
+                <td style="padding-left: 30px;">
+                    <div style="font-weight: 800; font-size: 1rem;">{{ fee.student.user.username }}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 700;">{{
+                        fee.student.enrollment_no }}</div>
+                </td>
+                <td style="font-weight: 700;">Semester {{ fee.semester }}</td>
+                <td style="font-weight: 600; opacity: 0.7;">Tuition Fees</td>
+                <td style="font-weight: 900; font-size: 1.1rem; color: var(--accent-color);">₹{{ fee.amount }}</td>
+                <td style="text-align: right; padding-right: 30px;">
+                    <span class="nm-badge" style="background: {% if fee.status == 'Paid' %}rgba(46,204,113,0.1){% else %}rgba(231,76,60,0.1){% endif %}; 
+                                       color: {% if fee.status == 'Paid' %}#2ecc71{% else %}#e74c3c{% endif %};
+                                       box-shadow: none; border: 1px solid currentColor;">
+                        {{ fee.status | upper }}
+                    </span>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5"
+                    style="padding: 60px; text-align: center; color: var(--text-secondary); font-weight: 700; opacity: 0.5;">
+                    No fee records found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

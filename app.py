@@ -166,124 +166,6 @@ def create_app(config_class=Config):
                                allotments=allotments, selected_allotment=selected_allotment,
                                marked_status=marked_status, present_count=present_count, absent_count=absent_count)
 
-    @app.route('/timetable')
-    @login_required
-    def view_timetable():
-        from models import Timetable
-        slots = Timetable.query.all()
-        return render_template('timetable.html', slots=slots)
-
-    @app.route('/timetable/add', methods=['GET', 'POST'])
-    @login_required
-    @role_required('Admin')
-    def add_timetable():
-        from models import Timetable, ClassAllotment
-        # Fetch unique subjects and classes already added
-        unique_subs = [x[0] for x in db.session.query(ClassAllotment.subject).distinct().all()]
-        unique_subs += [x[0] for x in db.session.query(Timetable.subject).distinct().all()]
-        unique_subs = sorted(list(set(filter(None, unique_subs))))
-        
-        unique_classes = [x[0] for x in db.session.query(ClassAllotment.class_name).distinct().all()]
-        unique_classes += [x[0] for x in db.session.query(Timetable.class_name).distinct().all()]
-        unique_classes = sorted(list(set(filter(None, unique_classes))))
-
-        if request.method == 'POST':
-            day = request.form.get('day')
-            start_hour = request.form.get('start_hour')
-            start_minute = request.form.get('start_minute')
-            start_period = request.form.get('start_period')
-            end_hour = request.form.get('end_hour')
-            end_minute = request.form.get('end_minute')
-            end_period = request.form.get('end_period')
-            subject = request.form.get('subject')
-            
-            print(f"DEBUG POST: day={day}, subject={subject}, start_hour={start_hour}, start_minute={start_minute}, start_period={start_period}")
-            
-            time_slot = f"{start_hour}:{start_minute} {start_period} - {end_hour}:{end_minute} {end_period}"
-            
-            # Auto-assign faculty if an allotment exists (by subject only now)
-            allotment = ClassAllotment.query.filter_by(subject=subject).first()
-            faculty_id = allotment.faculty_id if allotment else None
-            class_name = allotment.class_name if allotment else 'General'
-            
-            print(f"DEBUG SAVING: time_slot='{time_slot}', faculty_id={faculty_id}, class_name={class_name}")
-            
-            if not day or not subject or not time_slot:
-                flash('Error: Missing required fields', 'danger')
-                return redirect(url_for('add_timetable'))
-
-            new_slot = Timetable(day=day, time_slot=time_slot, subject=subject, class_name=class_name, faculty_id=faculty_id)
-            db.session.add(new_slot)
-            db.session.commit()
-            flash('Timetable slort added (Faculty auto-assigned)!', 'success')
-            return redirect(url_for('view_timetable'))
-        return render_template('add_timetable.html', subjects=unique_subs, classes=unique_classes)
-
-    @app.route('/timetable/edit/<int:id>', methods=['GET', 'POST'])
-    @login_required
-    @role_required('Admin')
-    def edit_timetable(id):
-        from models import Timetable, ClassAllotment
-        slot = Timetable.query.get_or_404(id)
-        
-        # Unique data for dropdowns
-        unique_subs = [x[0] for x in db.session.query(ClassAllotment.subject).distinct().all()]
-        unique_subs += [x[0] for x in db.session.query(Timetable.subject).distinct().all()]
-        unique_subs = sorted(list(set(filter(None, unique_subs))))
-        
-        unique_classes = [x[0] for x in db.session.query(ClassAllotment.class_name).distinct().all()]
-        unique_classes += [x[0] for x in db.session.query(Timetable.class_name).distinct().all()]
-        unique_classes = sorted(list(set(filter(None, unique_classes))))
-
-        if request.method == 'POST':
-            slot.day = request.form.get('day')
-            start_hour = request.form.get('start_hour')
-            start_minute = request.form.get('start_minute')
-            start_period = request.form.get('start_period')
-            end_hour = request.form.get('end_hour')
-            end_minute = request.form.get('end_minute')
-            end_period = request.form.get('end_period')
-            
-            slot.time_slot = f"{start_hour}:{start_minute} {start_period} - {end_hour}:{end_minute} {end_period}"
-            slot.subject = request.form.get('subject')
-            
-            # Auto-assign faculty if an allotment exists (by subject only)
-            allotment = ClassAllotment.query.filter_by(subject=slot.subject).first()
-            slot.faculty_id = allotment.faculty_id if allotment else None
-            slot.class_name = allotment.class_name if allotment else 'General'
-            
-            db.session.commit()
-            flash('Timetable slort updated (Faculty auto-assigned)!', 'success')
-            return redirect(url_for('view_timetable'))
-            
-        # Parse existing time_slot for pre-filling
-        try:
-            # HH:MM AM - HH:MM PM
-            start, end = slot.time_slot.split(' - ')
-            start_time, start_period = start.split(' ')
-            start_h, start_m = start_time.split(':')
-            end_time, end_period = end.split(' ')
-            end_h, end_m = end_time.split(':')
-            times = {
-                'sh': start_h, 'sm': start_m, 'sp': start_period,
-                'eh': end_h, 'em': end_m, 'ep': end_period
-            }
-        except:
-            times = {'sh': '09', 'sm': '00', 'sp': 'AM', 'eh': '10', 'em': '00', 'ep': 'AM'}
-
-        return render_template('edit_timetable.html', slot=slot, 
-                               subjects=unique_subs, classes=unique_classes, times=times)
-
-    @app.route('/timetable/delete/<int:id>')
-    @login_required
-    @role_required('Admin')
-    def delete_timetable(id):
-        from models import Timetable
-        slot = Timetable.query.get_or_404(id)
-        db.session.delete(slot)
-        db.session.commit()
-        flash('Timetable slot deleted!', 'warning')
-        return redirect(url_for('view_timetable'))
 
     @app.route('/my_attendance')
     @login_required
@@ -299,6 +181,165 @@ def create_app(config_class=Config):
                                attendances=attendances, 
                                present=present_count, 
                                absent=absent_count)
+
+    @app.route('/leaves', methods=['GET', 'POST'])
+    @login_required
+    def leaves():
+        from models import Leaves, User
+        if request.method == 'POST':
+            leave_type = request.form.get('type') # Casual, Medical, Other
+            reason = request.form.get('reason')
+            start_date = datetime.strptime(request.form.get('start_date'), '%Y-%m-%d').date()
+            end_date = datetime.strptime(request.form.get('end_date'), '%Y-%m-%d').date()
+            
+            # Initial status depends on role
+            if current_user.role == 'Student':
+                initial_status = 'Pending_Faculty'
+            elif current_user.role == 'Faculty':
+                initial_status = 'Pending_HOD'
+            elif current_user.role == 'HOD':
+                initial_status = 'Pending_Admin'
+            else:
+                initial_status = 'Approved' # Admin leaves are auto-approved for now or handle differently
+                
+            new_leave = Leaves(user_id=current_user.id, type=leave_type, reason=reason, 
+                               start_date=start_date, end_date=end_date, status=initial_status)
+            db.session.add(new_leave)
+            db.session.commit()
+            flash('Leave request initialized and routed for approval!', 'success')
+            return redirect(url_for('leaves'))
+        
+        # Dashboard leave stats
+        leaves_left = current_user.total_leaves - current_user.leaves_taken
+        
+        # Viewing logic
+        if current_user.role == 'Admin':
+            # Admin sees HOD leaves (Pending_Admin) and Faculty leaves (Pending_Admin) 
+            # and potentially proxy for HOD if HOD is on leave (simplifying: Admin sees all final stages)
+            all_leaves = Leaves.query.filter(Leaves.status.in_(['Pending_Admin', 'Approved', 'Rejected'])).all()
+        elif current_user.role == 'HOD':
+            # HOD sees Student leaves (Pending_HOD) and Faculty leaves (Pending_HOD)
+            # Also as Asst HOD proxy? Assuming Asst HOD has role HOD but check HODDetails.rank
+            all_leaves = Leaves.query.filter(Leaves.status.in_(['Pending_HOD', 'Pending_Admin'])).all()
+        elif current_user.role == 'Faculty':
+            # Faculty sees Student leaves (Pending_Faculty)
+            all_leaves = Leaves.query.filter(Leaves.status.in_(['Pending_Faculty', 'Pending_HOD'])).all()
+        else:
+            all_leaves = current_user.leaves.all()
+            
+        return render_template('leaves.html', leaves=all_leaves, left=leaves_left)
+
+    @app.route('/leaves/approve/<int:id>')
+    @login_required
+    def approve_leave(id):
+        from models import Leaves, User
+        leave = Leaves.query.get_or_404(id)
+        requester = leave.user
+        
+        # Simple Proxy Authority: If HOD rank is Asst_HOD and Admin is not available
+        # we can check current_user.role and rank.
+        
+        if current_user.role == 'Faculty' and leave.status == 'Pending_Faculty':
+            leave.status = 'Pending_HOD'
+            flash('Level 1 approval complete! Routed to HOD.', 'success')
+        elif current_user.role == 'HOD' and leave.status == 'Pending_HOD':
+            if requester.role == 'Student':
+                leave.status = 'Approved'
+                requester.leaves_taken += (leave.end_date - leave.start_date).days + 1
+            else: # Requester is Faculty
+                leave.status = 'Pending_Admin'
+            flash('Departmental approval complete!', 'success')
+        elif (current_user.role == 'Admin' or (current_user.role == 'HOD' and current_user.hod_profile.rank == 'Asst_HOD')) and leave.status == 'Pending_Admin':
+            leave.status = 'Approved'
+            requester.leaves_taken += (leave.end_date - leave.start_date).days + 1
+            flash('Leave fully authorized!', 'success')
+        else:
+            flash('Unauthorized or invalid flow.', 'danger')
+            
+        db.session.commit()
+        return redirect(url_for('leaves'))
+
+    @app.route('/leaves/reject/<int:id>')
+    @login_required
+    def reject_leave(id):
+        from models import Leaves
+        leave = Leaves.query.get_or_404(id)
+        leave.status = 'Rejected'
+        db.session.commit()
+        flash('Leave request denied.', 'warning')
+        return redirect(url_for('leaves'))
+
+    @app.route('/fees')
+    @login_required
+    def view_fees():
+        from models import Fee, StudentDetails
+        if current_user.role == 'Student':
+            fees = current_user.student_profile.fees.all()
+        elif current_user.role == 'Admin':
+            fees = Fee.query.all()
+        else:
+            fees = []
+        return render_template('fees.html', fees=fees)
+
+    @app.route('/admin/fees/add', methods=['POST'])
+    @login_required
+    @role_required('Admin')
+    def add_fee():
+        from models import Fee, StudentDetails
+        student_id = request.form.get('student_id')
+        title = request.form.get('title')
+        amount = request.form.get('amount')
+        due_date = datetime.strptime(request.form.get('due_date'), '%Y-%m-%d').date()
+        semester = request.form.get('semester')
+        
+        new_fee = Fee(student_id=student_id, title=title, amount=amount, due_date=due_date, semester=semester)
+        db.session.add(new_fee)
+        db.session.commit()
+        flash('Fee record created!', 'success')
+        return redirect(url_for('view_fees'))
+
+    @app.route('/certificates')
+    @login_required
+    def view_certificates():
+        from models import Certificate
+        if current_user.role == 'Student':
+            certs = current_user.student_profile.certificates.all()
+        elif current_user.role == 'Admin':
+            certs = Certificate.query.all()
+        else:
+            certs = []
+        return render_template('certificates.html', certificates=certs)
+
+    @app.route('/admin/certificates/upload', methods=['POST'])
+    @login_required
+    @role_required('Admin')
+    def upload_certificate():
+        from models import Certificate, StudentDetails
+        if 'file' not in request.files:
+            flash('No file part', 'danger')
+            return redirect(request.url)
+        file = request.files['file']
+        if file.filename == '':
+            flash('No selected file', 'danger')
+            return redirect(request.url)
+        
+        student_id = request.form.get('student_id')
+        title = request.form.get('title')
+        category = request.form.get('category')
+        
+        if file:
+            filename = secure_filename(file.filename)
+            upload_path = os.path.join(app.config['UPLOAD_FOLDER'], 'certificates', filename)
+            if not os.path.exists(os.path.dirname(upload_path)):
+                os.makedirs(os.path.dirname(upload_path))
+            file.save(upload_path)
+            
+            new_cert = Certificate(student_id=student_id, title=title, category=category, file_path=filename)
+            db.session.add(new_cert)
+            db.session.commit()
+            flash('Certificate uploaded!', 'success')
+            
+        return redirect(url_for('view_certificates'))
 
     @app.route('/notes', methods=['GET', 'POST'])
     @login_required
@@ -329,28 +370,109 @@ def create_app(config_class=Config):
     def download_file(filename):
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+    @app.route('/calendar')
+    @login_required
+    def calendar():
+        from models import Event
+        all_events = Event.query.order_by(Event.event_date.asc()).all()
+        return render_template('calendar.html', events=all_events)
+
+    @app.route('/admin/events/add', methods=['POST'])
+    @login_required
+    @role_required('Admin')
+    def add_event():
+        from models import Event
+        title = request.form.get('title')
+        description = request.form.get('description')
+        event_date_str = request.form.get('event_date')
+        
+        if not title or not event_date_str:
+            flash('Error: Missing required fields', 'danger')
+            return redirect(url_for('calendar'))
+            
+        event_date = datetime.strptime(event_date_str, '%Y-%m-%d').date()
+        new_event = Event(title=title, description=description, event_date=event_date)
+        db.session.add(new_event)
+        db.session.commit()
+        flash('Event added!', 'success')
+        return redirect(url_for('calendar'))
+
+    @app.route('/hod', methods=['GET', 'POST'])
+    @login_required
+    @role_required('HOD')
+    def hod_panel():
+        from models import User, StudentDetails, FacultyDetails, Leaves, HODDetails
+        hod = current_user.hod_profile
+        
+        if request.method == 'POST' and 'enrollment_no' in request.form:
+            # Add Student Logic
+            username = request.form.get('username')
+            password = request.form.get('password')
+            enrollment = request.form.get('enrollment_no')
+            course = request.form.get('course')
+            semester = request.form.get('semester')
+            
+            if User.query.filter_by(username=username).first():
+                flash('Username already exists', 'danger')
+                return redirect(url_for('hod_panel'))
+                
+            new_student = User(username=username, role='Student', department=hod.department)
+            new_student.set_password(password)
+            db.session.add(new_student)
+            db.session.flush()
+            
+            student = StudentDetails(user_id=new_student.id, enrollment_no=enrollment, 
+                                    course=course, department=hod.department, 
+                                    semester=semester, hod_id=hod.id)
+            db.session.add(student)
+            db.session.commit()
+            flash('Student registered within department!', 'success')
+            return redirect(url_for('hod_panel'))
+
+        stats = {
+            'total_students': hod.students.count(),
+            'total_faculty': hod.faculties.count(),
+            'pending_leaves': Leaves.query.filter_by(status='Pending_HOD').count(),
+        }
+        dept_faculty = hod.faculties.all()
+        dept_students = hod.students.all()
+        
+        return render_template('hod_panel.html', stats=stats, faculty=dept_faculty, students=dept_students)
+
     @app.route('/admin')
     @login_required
     @role_required('Admin')
     def admin_panel():
-        from models import User, StudentDetails, FacultyDetails
+        from models import User, StudentDetails, FacultyDetails, Leaves, Fee, HODDetails
         stats = {
             'total_users': User.query.count(),
             'total_students': StudentDetails.query.count(),
-            'total_faculty': FacultyDetails.query.count()
+            'total_faculty': FacultyDetails.query.count(),
+            'pending_leaves': Leaves.query.filter_by(status='Pending_Admin').count(),
+            'total_revenue': db.session.query(db.func.sum(Fee.amount)).filter(Fee.status == 'Paid').scalar() or 0
         }
-        return render_template('admin_panel.html', stats=stats)
+        
+        # Sorted Faculty Registry
+        # Logic: HOD -> Asst_HOD -> Faculty, grouped by Department
+        all_faculty = FacultyDetails.query.join(User).order_by(User.department.asc()).all()
+        all_hods = HODDetails.query.join(User).order_by(User.department.asc(), HODDetails.rank.asc()).all()
+        
+        return render_template('admin_panel.html', stats=stats, faculty=all_faculty, hods=all_hods)
 
     @app.route('/admin/users', methods=['GET', 'POST'])
     @login_required
     @role_required('Admin')
     def manage_users():
-        from models import User, StudentDetails, FacultyDetails
+        from models import User, StudentDetails, FacultyDetails, HODDetails
         if request.method == 'POST':
             username = request.form.get('username')
             password = request.form.get('password')
             role = request.form.get('role')
             
+            if role == 'Student':
+                flash('Students must be registered by HODs.', 'danger')
+                return redirect(url_for('manage_users'))
+
             if User.query.filter_by(username=username).first():
                 flash('Username already exists', 'danger')
                 return redirect(url_for('manage_users'))
@@ -360,20 +482,17 @@ def create_app(config_class=Config):
             db.session.add(new_user)
             db.session.flush()
             
-            if role == 'Student':
-                enrollment = request.form.get('enrollment_no')
-                course = request.form.get('course')
-                dept = request.form.get('student_department')
-                semester = request.form.get('semester')
-                # Removed class_name as per user request
-                student = StudentDetails(user_id=new_user.id, enrollment_no=enrollment, 
-                                        course=course, department=dept, semester=semester)
-                db.session.add(student)
-            elif role == 'Faculty':
+            if role == 'Faculty':
                 dept = request.form.get('faculty_department')
                 desig = request.form.get('designation')
-                faculty = FacultyDetails(user_id=new_user.id, department=dept, designation=desig)
+                hod_id = request.form.get('hod_id')
+                faculty = FacultyDetails(user_id=new_user.id, department=dept, designation=desig, hod_id=hod_id)
                 db.session.add(faculty)
+            elif role == 'HOD':
+                dept = request.form.get('hod_department')
+                rank = request.form.get('hod_rank') # HOD, Asst_HOD
+                hod = HODDetails(user_id=new_user.id, department=dept, rank=rank)
+                db.session.add(hod)
             
             db.session.commit()
             flash('User created successfully!', 'success')
@@ -441,11 +560,11 @@ def create_app(config_class=Config):
         flash(f'User {user.username} and all associated data deleted!', 'warning')
         return redirect(url_for('manage_users'))
 
-    @app.route('/admin/allot_class', methods=['GET', 'POST'])
+    @app.route('/hod/allot_class', methods=['GET', 'POST'])
     @login_required
-    @role_required('Admin')
+    @role_required('HOD')
     def allot_class():
-        from models import FacultyDetails, ClassAllotment, StudentDetails, Timetable
+        from models import FacultyDetails, ClassAllotment, StudentDetails
         faculties = FacultyDetails.query.all()
         allotments = ClassAllotment.query.all()
         
@@ -459,32 +578,33 @@ def create_app(config_class=Config):
         unique_classes = sorted(list(set(filter(None, unique_classes))))
         
         unique_subs = [x[0] for x in db.session.query(ClassAllotment.subject).distinct().all()]
-        unique_subs += [x[0] for x in db.session.query(Timetable.subject).distinct().all()]
         unique_subs = sorted(list(set(filter(None, unique_subs))))
 
         if request.method == 'POST':
             faculty_id = request.form.get('faculty_id')
+            faculty_name = request.form.get('faculty_name')
             dept = request.form.get('department')
             cls_name = request.form.get('class_name')
             subject = request.form.get('subject')
             
-            allotment = ClassAllotment(faculty_id=faculty_id, department=dept, class_name=cls_name, subject=subject)
+            allotment = ClassAllotment(faculty_id=faculty_id, faculty_name=faculty_name, 
+                                     department=dept, class_name=cls_name, subject=subject)
             db.session.add(allotment)
             db.session.commit()
-            flash('Class allotted to faculty!', 'success')
+            flash('Faculty successfully assigned to class!', 'success')
             return redirect(url_for('allot_class'))
         return render_template('allot_classes.html', faculties=faculties, allotments=allotments, 
                                departments=unique_depts, classes=unique_classes, subjects=unique_subs)
 
-    @app.route('/admin/allot_class/delete/<int:id>')
+    @app.route('/hod/allot_class/delete/<int:id>')
     @login_required
-    @role_required('Admin')
+    @role_required('HOD')
     def delete_allotment(id):
         from models import ClassAllotment
         allotment = ClassAllotment.query.get_or_404(id)
         db.session.delete(allotment)
         db.session.commit()
-        flash('Allotment removed!', 'warning')
+        flash('Assignment removed!', 'warning')
         return redirect(url_for('allot_class'))
 
     return app

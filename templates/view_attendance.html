@@ -3,95 +3,75 @@
 {% block title %}My Attendance - Lumen ERP{% endblock %}
 
 {% block content %}
-<div class="responsive-grid">
-    <div class="neumorph-card" style="margin: 0;">
-        <h2 style="margin-bottom: 25px;">Attendance Records</h2>
-        <div class="table-container">
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="border-bottom: 1px solid var(--shadow-dark);">
-                        <th style="padding: 15px; text-align: left;">Date</th>
-                        <th style="padding: 15px; text-align: left;">Subject</th>
-                        <th style="padding: 15px; text-align: center;">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for att in attendances %}
-                    <tr style="border-bottom: 1px solid var(--shadow-dark);">
-                        <td style="padding: 15px;">{{ att.date.strftime('%Y-%m-%d') }}</td>
-                        <td style="padding: 15px;">{{ att.subject }}</td>
-                        <td style="padding: 15px; text-align: center;">
-                            <span class="status-badge {{ 'present' if att.status == 'Present' else 'absent' }}">
-                                {{ att.status }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="3" style="padding: 30px; text-align: center; opacity: 0.5;">No records found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+<div style="margin-bottom: 50px;">
+    <h1 class="hero-text" style="margin-bottom: 10px;">My Attendance</h1>
+    <p style="color: var(--text-secondary); font-weight: 700;">View your attendance history and statistics</p>
+</div>
 
-    <div class="neumorph-card"
-        style="margin: 0; text-align: center; display: flex; flex-direction: column; align-items: center;">
-        <h2 style="margin-bottom: 25px;">Performance Overview</h2>
-        <div style="width: 100%; max-width: 300px; padding: 20px;" class="neumorph-inset">
-            <canvas id="attendanceChart"></canvas>
+<div class="grid-3" style="margin-bottom: 50px;">
+    <div class="nm-card" style="text-align: center; border-bottom: 5px solid #2ecc71;">
+        <h4
+            style="color: var(--text-secondary); font-weight: 800; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 15px;">
+            Days Present</h4>
+        <div style="font-size: 3rem; font-weight: 900; color: #2ecc71;">{{ present }}</div>
+        <p style="font-size: 0.8rem; font-weight: 700; opacity: 0.6;">Total Present</p>
+    </div>
+    <div class="nm-card" style="text-align: center; border-bottom: 5px solid #ff4757;">
+        <h4
+            style="color: var(--text-secondary); font-weight: 800; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 15px;">
+            Days Absent</h4>
+        <div style="font-size: 3rem; font-weight: 900; color: #ff4757;">{{ absent }}</div>
+        <p style="font-size: 0.8rem; font-weight: 700; opacity: 0.6;">Total Absent</p>
+    </div>
+    <div class="nm-card" style="text-align: center; border-bottom: 5px solid var(--accent-color);">
+        <h4
+            style="color: var(--text-secondary); font-weight: 800; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 15px;">
+            Attendance Percentage</h4>
+        <div style="font-size: 3rem; font-weight: 900; color: var(--accent-color);">
+            {% if (present + absent) > 0 %}
+            {{ ((present / (present + absent)) * 100) | round(1) }}%
+            {% else %}
+            0%
+            {% endif %}
         </div>
-        <div style="margin-top: 30px; display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
-            <div style="text-align: center;">
-                <div style="font-size: 1.5rem; font-weight: 800; color: #4DB6AC;">{{ present }}</div>
-                <div style="font-size: 0.8rem; opacity: 0.6; text-transform: uppercase;">Present</div>
-            </div>
-            <div style="text-align: center;">
-                <div style="font-size: 1.5rem; font-weight: 800; color: #E57373;">{{ absent }}</div>
-                <div style="font-size: 0.8rem; opacity: 0.6; text-transform: uppercase;">Absent</div>
-            </div>
-            <div style="text-align: center;">
-                {% set total = present + absent %}
-                <div style="font-size: 1.5rem; font-weight: 800; color: var(--header-blue);">
-                    {{ (present / total * 100)|round(1) if total > 0 else 0 }}%
-                </div>
-                <div style="font-size: 0.8rem; opacity: 0.6; text-transform: uppercase;">Total</div>
-            </div>
-        </div>
+        <p style="font-size: 0.8rem; font-weight: 700; opacity: 0.6;">Overall Attendance</p>
     </div>
 </div>
 
-<div style="margin-top: 40px; text-align: center;">
-    <a href="{{ url_for('dashboard') }}" class="neumorph-btn"
-        style="text-decoration: none; display: inline-block; padding: 12px 30px;">Back to Dashboard</a>
-</div>
+<div class="nm-table-container">
+    <div style="padding: 20px 10px 40px;">
+        <h2 style="font-weight: 900; letter-spacing: -1px;">Attendance History</h2>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    const ctx = document.getElementById('attendanceChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Present', 'Absent'],
-            datasets: [{
-                data: [{{ present| int }}, {{ absent| int }}],
-        backgroundColor: ['#4DB6AC', '#E57373'],
-        borderColor: 'transparent',
-        borderWidth: 0,
-        hoverOffset: 10
-    }]
-        },
-        options: {
-        cutout: '70%',
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        responsive: true,
-        maintainAspectRatio: true
-    }
-    });
-</script>
+    <table>
+        <thead>
+            <tr>
+                <th style="padding-left: 30px;">Date</th>
+                <th>Subject</th>
+                <th style="text-align: right; padding-right: 30px;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in attendances %}
+            <tr>
+                <td style="padding-left: 30px; font-weight: 800; font-size: 1rem;">{{ entry.date }}</td>
+                <td style="font-weight: 700; opacity: 0.8;">{{ entry.subject or 'System Allotment' }}</td>
+                <td style="text-align: right; padding-right: 30px;">
+                    <span class="nm-badge" style="background: {% if entry.status == 'Present' %}rgba(46,204,113,0.1){% else %}rgba(231,76,60,0.1){% endif %}; 
+                                       color: {% if entry.status == 'Present' %}#2ecc71{% else %}#e74c3c{% endif %};
+                                       box-shadow: none; border: 1px solid currentColor;">
+                        {{ entry.status | upper }}
+                    </span>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3"
+                    style="padding: 80px; text-align: center; color: var(--text-secondary); font-weight: 700; opacity: 0.5;">
+                    No attendance records found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

@@ -1,49 +1,84 @@
 {% extends "base.html" %}
 
-{% block title %}Notes - Lumen ERP{% endblock %}
+{% block title %}Study Material - Lumen ERP{% endblock %}
 
 {% block content %}
-<div class="neumorph-card">
-    <h2 style="margin-bottom: 25px;">Study Materials & Notes</h2>
+<div style="margin-bottom: 50px;">
+    <h1 class="hero-text" style="margin-bottom: 10px;">Study Material</h1>
+    <p style="color: var(--text-secondary); font-weight: 700;">Download notes and other study resources</p>
+</div>
 
-    {% if current_user.role == 'Faculty' %}
-    <div class="neumorph-card" style="margin-bottom: 40px; padding: 30px;">
-        <h3>Upload New Note</h3>
-        <form method="POST" enctype="multipart/form-data">
-            <div style="margin-bottom: 20px;">
-                <input type="file" name="file" class="neumorph-inset" required style="padding: 10px;">
+{% if current_user.role == 'Faculty' %}
+<div class="nm-card" style="margin-bottom: 60px; padding: 40px;">
+    <h2
+        style="font-weight: 900; margin-bottom: 25px; letter-spacing: -1px; display: flex; align-items: center; gap: 15px; font-size: 1.2rem;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="3">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        Upload Study Material
+    </h2>
+    <form action="/notes" method="POST" enctype="multipart/form-data">
+        <div class="grid-2" style="gap: 30px; align-items: flex-end;">
+            <div>
+                <label
+                    style="display: block; margin-bottom: 10px; font-weight: 800; font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary);">Select
+                    File</label>
+                <input type="file" name="file" class="nm-input" style="padding: 12px;" required>
             </div>
-            <button type="submit" class="neumorph-btn">Upload Note</button>
-        </form>
-    </div>
-    {% endif %}
+            <button type="submit" class="nm-btn"
+                style="height: 55px; background: var(--text-primary); color: white;">Upload Now</button>
+        </div>
+    </form>
+</div>
+{% endif %}
 
-    <div class="neumorph-card"
-        style="box-shadow: inset 4px 4px 10px var(--shadow-dark), inset -4px -4px 10px var(--shadow-light); padding: 0; overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; min-width: 400px;">
-            <thead>
-                <tr style="border-bottom: 1px solid var(--shadow-dark);">
-                    <th style="padding: 15px; text-align: left;">Filename</th>
-                    <th style="padding: 15px; text-align: center;">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for filename in notes %}
-                <tr style="border-bottom: 1px solid var(--shadow-dark);">
-                    <td style="padding: 15px;">{{ filename }}</td>
-                    <td style="padding: 15px; text-align: center;">
-                        <a href="{{ url_for('download_file', filename=filename) }}" class="neumorph-btn"
-                            style="text-decoration: none;">Download</a>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="2" style="padding: 30px; text-align: center; opacity: 0.5;">No materials available.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="nm-table-container">
+    <div style="padding: 20px 10px 40px;">
+        <h2 style="font-weight: 900; letter-spacing: -1px;">Materials List</h2>
     </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="padding-left: 30px;">File Name</th>
+                <th>Type</th>
+                <th style="text-align: right; padding-right: 30px;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for filename in notes %}
+            <tr>
+                <td style="padding-left: 30px;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div class="nm-badge"
+                            style="width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)"
+                                stroke-width="2.5">
+                                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                                <polyline points="13 2 13 9 20 9"></polyline>
+                            </svg>
+                        </div>
+                        <div style="font-weight: 800; font-size: 1rem;">{{ filename }}</div>
+                    </div>
+                </td>
+                <td><span class="nm-badge" style="font-weight: 800; opacity: 0.7;">STUDY_MATERIAL</span></td>
+                <td style="text-align: right; padding-right: 30px;">
+                    <a href="/download/{{ filename }}" class="nm-btn"
+                        style="padding: 8px 24px; font-size: 0.8rem; background: rgba(109, 93, 252, 0.05); color: var(--accent-color);">
+                        Download
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3"
+                    style="padding: 80px; text-align: center; color: var(--text-secondary); font-weight: 700; opacity: 0.5;">
+                    No study materials available at the moment.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

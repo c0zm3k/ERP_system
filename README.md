@@ -2,7 +2,7 @@
 
 > **A modern, soft-UI (Neumorphic) College Management System built with Flask and SQLAlchemy.**
 
-Lumen ERP streamlines college administration by providing a distinct, aesthetic interface for managing attendance, timetables, and academic resources. It features a robust Role-Based Access Control (RBAC) system to ensure secure interactions for Admins, Faculty, and Students.
+Lumen ERP streamlines college administration by providing a distinct, aesthetic interface for managing attendance and academic resources. It features a robust Role-Based Access Control (RBAC) system to ensure secure interactions for Admins, Faculty, and Students.
 
 ---
 
@@ -31,7 +31,6 @@ Lumen ERP streamlines college administration by providing a distinct, aesthetic 
 ### 📚 Modules
 
 * **Attendance Tracking:** Faculty can digitally mark attendance; students can view real-time records.
-* **Timetable Management:** Admins create schedules that are visible to all relevant parties.
 * **Digital Library:** Faculty can upload study materials (PDF/DOCX); students can download them instantly.
 
 ---
@@ -98,9 +97,9 @@ Use the following accounts to test the different user roles:
 
 | Role | Username | Password | Access Level |
 | --- | --- | --- | --- |
-| **Admin** | `admin` | `admin123` | Full System Control, User Management, Timetables |
+| **Admin** | `admin` | `admin123` | Full System Control, User Management |
 | **Faculty** | `faculty1` | `faculty123` | Attendance Marking, Notes Uploading |
-| **Student** | `student1` | `student123` | View Attendance, Download Notes, View Timetable |
+| **Student** | `student1` | `student123` | View Attendance, Download Notes |
 
 ---
 

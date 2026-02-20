@@ -5,87 +5,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Lumen ERP{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=4.0">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ range(1, 9999) | random }}">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
-    <!-- 3D Background Decor -->
-    <div class="bg-decor">
-        <div class="decor-blob blob-1"></div>
-        <div class="decor-blob blob-2"></div>
-        <div class="decor-blob blob-3"></div>
+    <div id="bg-canvas">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
     </div>
+
+    {% if request.path != '/login' and request.path != '/' %}
     <nav>
-        <div class="nav-capsule" style="background-color: #103F60;">
-            <a href="{{ url_for('dashboard') }}" class="logo" style="text-decoration: none;">Lumen ERP</a>
+        <div class="nav-inner">
+            <a href="/dashboard" class="logo-container" style="text-decoration: none; color: white;">
+                <div style="font-weight: 900; font-size: 1.2rem; letter-spacing: -1px;">
+                    Lumen ERP
+                </div>
+            </a>
 
-            <div class="hamburger" id="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-
-            <div class="nav-links" id="nav-links">
-                {% if current_user.is_authenticated %}
+            <div class="nav-links">
+                {% if current_user.is_authenticated or current_user %}
+                <a href="/dashboard" class="nav-item">Home</a>
                 {% if current_user.role == 'Admin' %}
-                <a href="{{ url_for('dashboard') }}">Home</a>
-                <a href="{{ url_for('admin_panel') }}">Admin Settings</a>
+                <a href="/admin" class="nav-item">Admin Settings</a>
                 {% endif %}
-                <a href="{{ url_for('logout') }}">Logout</a>
+                {% if current_user.role == 'HOD' %}
+                <a href="/hod" class="nav-item">HOD Panel</a>
+                {% endif %}
+                <a href="/logout" class="nav-item">Logout</a>
                 {% else %}
-                <a href="{{ url_for('login') }}">Login</a>
+                <a href="/login" class="nav-item">Login</a>
                 {% endif %}
             </div>
         </div>
     </nav>
+    {% endif %}
 
     <div class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        <div id="flash-container">
-            {% for category, message in messages %}
-            <div class="neumorph-card category-{{ category }} flash-msg">
-                <div class="flash-close" onclick="this.parentElement.classList.add('fade-out')">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </div>
-                {{ message }}
-            </div>
-            {% endfor %}
+        {% for category, message in messages %}
+        <div class="nm-card flash-message"
+            style="margin-bottom: 30px; border-left: 8px solid {% if category == 'success' %}#2ecc71{% else %}#e74c3c{% endif %}; padding: 20px 40px; font-weight: 700;">
+            {{ message }}
         </div>
+        {% endfor %}
         {% endif %}
         {% endwith %}
 
         {% block content %}{% endblock %}
     </div>
 
-    <footer>
+    <footer
+        style="padding: 60px; text-align: center; color: var(--text-secondary); font-weight: 700; font-size: 0.9rem;">
         &copy; 2026 Lumen ERP - Modern Academic Management
     </footer>
 
     <script>
-        // Hamburger Menu Toggle
-        document.getElementById('hamburger').addEventListener('click', function () {
-            document.getElementById('nav-links').classList.toggle('active');
+        // Active link highlighting
+        document.querySelectorAll('.nav-item').forEach(link => {
+            if (link.href === window.location.href) {
+                link.classList.add('active');
+            }
         });
 
-        // Auto-hide flash messages after 1.5 seconds
-        document.addEventListener('DOMContentLoaded', () => {
-            const messages = document.querySelectorAll('.flash-msg');
-            messages.forEach(msg => {
-                setTimeout(() => {
-                    if (msg) msg.classList.add('fade-out');
-                    // Completely remove from DOM after the 0.6s CSS transition
-                    setTimeout(() => {
-                        if (msg) msg.style.display = 'none';
-                    }, 650);
-                }, 1500);
+        // Auto-dismiss flash messages
+        window.onclick = function (event) {
+            // Optional: Dismiss on click
+        }
+
+        setTimeout(function () {
+            document.querySelectorAll('.flash-message').forEach(function (msg) {
+                msg.style.opacity = '0';
+                msg.style.transform = 'translateY(-20px)';
+                setTimeout(function () {
+                    msg.style.display = 'none';
+                }, 500);
             });
-        });
+        }, 3000);
     </script>
 </body>
 
